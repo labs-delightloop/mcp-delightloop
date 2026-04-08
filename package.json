@@ -1,0 +1,58 @@
+{
+  "name": "mcp-delightloop",
+  "version": "0.1.0",
+  "description": "MCP server for Delightloop — manage contacts, campaigns, and webhooks from any AI assistant",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "delightloop",
+    "gifting",
+    "contacts",
+    "campaigns",
+    "claude",
+    "cursor",
+    "windsurf",
+    "ai",
+    "automation"
+  ],
+  "license": "MIT",
+  "homepage": "https://delightloop.ai",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/labs-delightloop/mcp-delightloop.git"
+  },
+  "bugs": {
+    "url": "https://github.com/labs-delightloop/mcp-delightloop/issues"
+  },
+  "author": {
+    "name": "Delightloop",
+    "email": "tushar@delightloop.com"
+  },
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "mcp-delightloop": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "prepublishOnly": "pnpm build"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  }
+}
