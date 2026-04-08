@@ -19,7 +19,7 @@
 ## Prerequisites
 
 - **Node.js 18+**
-- A **Delightloop API key** → get it from [Settings → API Keys](https://app.delightloop.ai/settings/api-keys)
+- A **Delightloop API key** → get it from [Settings → API Keys](https://web.delightloop.ai/settings/api-keys)
 
 ---
 
@@ -254,7 +254,7 @@ Once configured, just talk to your AI naturally:
 
 The server reads `DELIGHTLOOP_API_KEY` from the environment and validates it against the Delightloop API on startup. If the key is missing, invalid, or expired the server exits immediately with a clear error message — no silent failures.
 
-Get your API key from **[Settings → API Keys](https://app.delightloop.ai/settings/api-keys)** in the Delightloop dashboard.
+Get your API key from **[Settings → API Keys](https://web.delightloop.ai/settings/api-keys)** in the Delightloop dashboard.
 
 ---
 
