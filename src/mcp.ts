@@ -23,6 +23,11 @@ import {
 } from "./tools/campaigns.js";
 
 import {
+  RecipientGetSchema,
+  recipientGet,
+} from "./tools/recipients.js";
+
+import {
   WebhookCreateSchema,
   WebhookGetSchema,
   WebhookListSchema,
@@ -60,7 +65,7 @@ function wrap<T>(fn: () => Promise<T>) {
 export function createMcpServer(apiKey: string): McpServer {
   const server = new McpServer({
     name: "mcp-delightloop",
-    version: "0.1.2",
+    version: "0.1.3",
   });
 
   // ── Contacts ───────────────────────────────────────────────────────────────
@@ -97,6 +102,14 @@ export function createMcpServer(apiKey: string): McpServer {
     "Update an existing contact in Delightloop",
     ContactUpdateSchema.shape,
     (input) => wrap(() => contactUpdate(input, apiKey)),
+  );
+
+  // ── Recipients ────────────────────────────────────────────────────────────
+  server.tool(
+    "recipient_get",
+    "Get a recipient by ID, including their status, contact details, selected gift, shipment info, and — importantly — the landingPageUrl and claimPageUrl they were sent.",
+    RecipientGetSchema.shape,
+    (input) => wrap(() => recipientGet(input, apiKey)),
   );
 
   // ── Campaigns ──────────────────────────────────────────────────────────────

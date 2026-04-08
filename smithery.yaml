@@ -35,6 +35,8 @@ config:
 
 # All tools this server exposes
 tools:
+  - name: recipient_get
+    description: Get a recipient by ID — includes landingPageUrl and claimPageUrl
   - name: contact_create
     description: Create a new contact in Delightloop
   - name: contact_bulk_create
