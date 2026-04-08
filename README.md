@@ -6,6 +6,8 @@
 [![npm version](https://img.shields.io/npm/v/mcp-delightloop)](https://www.npmjs.com/package/mcp-delightloop)
 [![license](https://img.shields.io/npm/l/mcp-delightloop)](https://www.npmjs.com/package/mcp-delightloop)
 
+**Live server:** `https://mcp-delightloop.makesamhappy.com`
+
 ---
 
 ## What is MCP?
