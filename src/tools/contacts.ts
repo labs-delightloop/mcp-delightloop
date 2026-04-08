@@ -4,7 +4,6 @@ import { dlRequest, fetchAllPages } from "../client.js";
 // ─── Schemas ────────────────────────────────────────────────────────────────
 
 export const ContactCreateSchema = z.object({
-  apiKey: z.string().describe("Delightloop API key"),
   email: z.string().email().describe("Primary email address of the contact"),
   firstName: z.string().optional().describe("First name"),
   lastName: z.string().optional().describe("Last name"),
@@ -16,18 +15,12 @@ export const ContactCreateSchema = z.object({
     .optional()
     .describe("LinkedIn profile URL (e.g. https://linkedin.com/in/johnsmith)"),
   tags: z
-    .array(
-      z.object({
-        name: z.string(),
-        color: z.string().optional(),
-      }),
-    )
+    .array(z.object({ name: z.string(), color: z.string().optional() }))
     .optional()
-    .describe('Tag objects with name and optional color hex, e.g. [{"name":"vip","color":"#FF5733"}]'),
+    .describe('Tag objects, e.g. [{"name":"vip","color":"#FF5733"}]'),
 });
 
 export const ContactBulkCreateSchema = z.object({
-  apiKey: z.string().describe("Delightloop API key"),
   contacts: z
     .array(
       z.object({
@@ -41,16 +34,14 @@ export const ContactBulkCreateSchema = z.object({
       }),
     )
     .min(1)
-    .describe("Array of contacts to create. Each must have at least an email."),
+    .describe("Array of contacts. Each must have at least an email."),
 });
 
 export const ContactGetSchema = z.object({
-  apiKey: z.string().describe("Delightloop API key"),
   contactId: z.string().describe("The ID of the contact to retrieve"),
 });
 
 export const ContactListSchema = z.object({
-  apiKey: z.string().describe("Delightloop API key"),
   returnAll: z
     .boolean()
     .optional()
@@ -71,7 +62,6 @@ export const ContactListSchema = z.object({
 });
 
 export const ContactUpdateSchema = z.object({
-  apiKey: z.string().describe("Delightloop API key"),
   contactId: z.string().describe("The ID of the contact to update"),
   email: z.string().email().optional().describe("New email address"),
   firstName: z.string().optional().describe("New first name"),
@@ -105,6 +95,7 @@ function simplifyContact(c: Record<string, unknown>) {
 
 export async function contactCreate(
   input: z.infer<typeof ContactCreateSchema>,
+  apiKey: string,
 ) {
   const body: Record<string, unknown> = {
     mailId: input.email,
@@ -120,40 +111,46 @@ export async function contactCreate(
   return dlRequest({
     method: "POST",
     path: "/api/campaigns/contacts",
-    apiKey: input.apiKey,
+    apiKey,
     body,
   });
 }
 
 export async function contactBulkCreate(
   input: z.infer<typeof ContactBulkCreateSchema>,
+  apiKey: string,
 ) {
-  const normalised = input.contacts.map((c) => ({
-    ...c,
-    mailId: c.email,
-    email: undefined,
+  const normalised = input.contacts.map(({ email, ...rest }) => ({
+    ...rest,
+    mailId: email,
   }));
 
   return dlRequest({
     method: "POST",
     path: "/api/campaigns/contacts/bulk",
-    apiKey: input.apiKey,
+    apiKey,
     body: { contacts: normalised },
   });
 }
 
-export async function contactGet(input: z.infer<typeof ContactGetSchema>) {
+export async function contactGet(
+  input: z.infer<typeof ContactGetSchema>,
+  apiKey: string,
+) {
   return dlRequest({
     method: "GET",
     path: `/api/campaigns/contacts/${input.contactId}`,
-    apiKey: input.apiKey,
+    apiKey,
   });
 }
 
-export async function contactList(input: z.infer<typeof ContactListSchema>) {
+export async function contactList(
+  input: z.infer<typeof ContactListSchema>,
+  apiKey: string,
+) {
   if (input.returnAll) {
     const items = await fetchAllPages<Record<string, unknown>>(
-      input.apiKey,
+      apiKey,
       "/api/campaigns/contacts",
       "items",
       { search: input.search },
@@ -170,7 +167,7 @@ export async function contactList(input: z.infer<typeof ContactListSchema>) {
   const res = await dlRequest<Record<string, unknown>>({
     method: "GET",
     path: "/api/campaigns/contacts",
-    apiKey: input.apiKey,
+    apiKey,
     query,
   });
 
@@ -185,6 +182,7 @@ export async function contactList(input: z.infer<typeof ContactListSchema>) {
 
 export async function contactUpdate(
   input: z.infer<typeof ContactUpdateSchema>,
+  apiKey: string,
 ) {
   const body: Record<string, unknown> = {};
   if (input.email) body.mailId = input.email;
@@ -202,7 +200,7 @@ export async function contactUpdate(
   return dlRequest({
     method: "PUT",
     path: `/api/campaigns/contacts/${input.contactId}`,
-    apiKey: input.apiKey,
+    apiKey,
     body,
   });
 }

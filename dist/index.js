@@ -38,7 +38,7 @@ const server = new McpServer({
     name: "mcp-delightloop",
     version: "0.1.0",
 });
-// ─── Helper to wrap tool handlers with consistent error formatting ────────────
+// ─── Helper: wrap handlers with consistent error formatting ──────────────────
 function wrap(fn) {
     return fn()
         .then((result) => ({
@@ -55,17 +55,11 @@ function wrap(fn) {
     }));
 }
 // ─── Contact tools ────────────────────────────────────────────────────────────
-// Remove apiKey from schemas since we inject it from env
-const ContactCreateInput = ContactCreateSchema.omit({ apiKey: true });
-const ContactBulkCreateInput = ContactBulkCreateSchema.omit({ apiKey: true });
-const ContactGetInput = ContactGetSchema.omit({ apiKey: true });
-const ContactListInput = ContactListSchema.omit({ apiKey: true });
-const ContactUpdateInput = ContactUpdateSchema.omit({ apiKey: true });
-server.tool("contact_create", "Create a new contact in Delightloop", ContactCreateInput.shape, (input) => wrap(() => contactCreate({ ...input, apiKey: API_KEY })));
-server.tool("contact_bulk_create", "Create multiple contacts at once in Delightloop", ContactBulkCreateInput.shape, (input) => wrap(() => contactBulkCreate({ ...input, apiKey: API_KEY })));
-server.tool("contact_get", "Retrieve a single contact by ID from Delightloop", ContactGetInput.shape, (input) => wrap(() => contactGet({ ...input, apiKey: API_KEY })));
-server.tool("contact_list", "List contacts in Delightloop with optional search and pagination", ContactListInput.shape, (input) => wrap(() => contactList({ ...input, apiKey: API_KEY })));
-server.tool("contact_update", "Update an existing contact in Delightloop", ContactUpdateInput.shape, (input) => wrap(() => contactUpdate({ ...input, apiKey: API_KEY })));
+server.tool("contact_create", "Create a new contact in Delightloop", ContactCreateSchema.shape, (input) => wrap(() => contactCreate(input, API_KEY)));
+server.tool("contact_bulk_create", "Create multiple contacts at once in Delightloop", ContactBulkCreateSchema.shape, (input) => wrap(() => contactBulkCreate(input, API_KEY)));
+server.tool("contact_get", "Retrieve a single contact by ID from Delightloop", ContactGetSchema.shape, (input) => wrap(() => contactGet(input, API_KEY)));
+server.tool("contact_list", "List contacts in Delightloop with optional search and pagination", ContactListSchema.shape, (input) => wrap(() => contactList(input, API_KEY)));
+server.tool("contact_update", "Update an existing contact in Delightloop", ContactUpdateSchema.shape, (input) => wrap(() => contactUpdate(input, API_KEY)));
 // ─── Campaign tools ───────────────────────────────────────────────────────────
 server.tool("campaign_get", "Retrieve a single campaign by ID from Delightloop", CampaignGetSchema.shape, (input) => wrap(() => campaignGet(input, API_KEY)));
 server.tool("campaign_list", "List campaigns in Delightloop. Filter by status (draft, live, paused, preparing, completed) or search by name.", CampaignListSchema.shape, (input) => wrap(() => campaignList(input, API_KEY)));

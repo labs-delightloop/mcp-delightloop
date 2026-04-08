@@ -1,6 +1,5 @@
 import { z } from "zod";
 export declare const ContactCreateSchema: z.ZodObject<{
-    apiKey: z.ZodString;
     email: z.ZodString;
     firstName: z.ZodOptional<z.ZodString>;
     lastName: z.ZodOptional<z.ZodString>;
@@ -19,7 +18,6 @@ export declare const ContactCreateSchema: z.ZodObject<{
         color?: string | undefined;
     }>, "many">>;
 }, "strip", z.ZodTypeAny, {
-    apiKey: string;
     email: string;
     firstName?: string | undefined;
     lastName?: string | undefined;
@@ -32,7 +30,6 @@ export declare const ContactCreateSchema: z.ZodObject<{
         color?: string | undefined;
     }[] | undefined;
 }, {
-    apiKey: string;
     email: string;
     firstName?: string | undefined;
     lastName?: string | undefined;
@@ -46,7 +43,6 @@ export declare const ContactCreateSchema: z.ZodObject<{
     }[] | undefined;
 }>;
 export declare const ContactBulkCreateSchema: z.ZodObject<{
-    apiKey: z.ZodString;
     contacts: z.ZodArray<z.ZodObject<{
         email: z.ZodString;
         firstName: z.ZodOptional<z.ZodString>;
@@ -73,7 +69,6 @@ export declare const ContactBulkCreateSchema: z.ZodObject<{
         linkedinUrl?: string | undefined;
     }>, "many">;
 }, "strip", z.ZodTypeAny, {
-    apiKey: string;
     contacts: {
         email: string;
         firstName?: string | undefined;
@@ -84,7 +79,6 @@ export declare const ContactBulkCreateSchema: z.ZodObject<{
         linkedinUrl?: string | undefined;
     }[];
 }, {
-    apiKey: string;
     contacts: {
         email: string;
         firstName?: string | undefined;
@@ -96,17 +90,13 @@ export declare const ContactBulkCreateSchema: z.ZodObject<{
     }[];
 }>;
 export declare const ContactGetSchema: z.ZodObject<{
-    apiKey: z.ZodString;
     contactId: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    apiKey: string;
     contactId: string;
 }, {
-    apiKey: string;
     contactId: string;
 }>;
 export declare const ContactListSchema: z.ZodObject<{
-    apiKey: z.ZodString;
     returnAll: z.ZodDefault<z.ZodOptional<z.ZodBoolean>>;
     limit: z.ZodDefault<z.ZodOptional<z.ZodNumber>>;
     page: z.ZodDefault<z.ZodOptional<z.ZodNumber>>;
@@ -114,18 +104,15 @@ export declare const ContactListSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     page: number;
     limit: number;
-    apiKey: string;
     returnAll: boolean;
     search?: string | undefined;
 }, {
-    apiKey: string;
     page?: number | undefined;
     limit?: number | undefined;
     returnAll?: boolean | undefined;
     search?: string | undefined;
 }>;
 export declare const ContactUpdateSchema: z.ZodObject<{
-    apiKey: z.ZodString;
     contactId: z.ZodString;
     email: z.ZodOptional<z.ZodString>;
     firstName: z.ZodOptional<z.ZodString>;
@@ -135,7 +122,6 @@ export declare const ContactUpdateSchema: z.ZodObject<{
     phone: z.ZodOptional<z.ZodString>;
     linkedinUrl: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    apiKey: string;
     contactId: string;
     email?: string | undefined;
     firstName?: string | undefined;
@@ -145,7 +131,6 @@ export declare const ContactUpdateSchema: z.ZodObject<{
     phone?: string | undefined;
     linkedinUrl?: string | undefined;
 }, {
-    apiKey: string;
     contactId: string;
     email?: string | undefined;
     firstName?: string | undefined;
@@ -155,10 +140,10 @@ export declare const ContactUpdateSchema: z.ZodObject<{
     phone?: string | undefined;
     linkedinUrl?: string | undefined;
 }>;
-export declare function contactCreate(input: z.infer<typeof ContactCreateSchema>): Promise<unknown>;
-export declare function contactBulkCreate(input: z.infer<typeof ContactBulkCreateSchema>): Promise<unknown>;
-export declare function contactGet(input: z.infer<typeof ContactGetSchema>): Promise<unknown>;
-export declare function contactList(input: z.infer<typeof ContactListSchema>): Promise<{
+export declare function contactCreate(input: z.infer<typeof ContactCreateSchema>, apiKey: string): Promise<unknown>;
+export declare function contactBulkCreate(input: z.infer<typeof ContactBulkCreateSchema>, apiKey: string): Promise<unknown>;
+export declare function contactGet(input: z.infer<typeof ContactGetSchema>, apiKey: string): Promise<unknown>;
+export declare function contactList(input: z.infer<typeof ContactListSchema>, apiKey: string): Promise<{
     items: {
         contactId: unknown;
         firstName: unknown;
@@ -195,5 +180,5 @@ export declare function contactList(input: z.infer<typeof ContactListSchema>): P
     page: unknown;
     totalPages: unknown;
 }>;
-export declare function contactUpdate(input: z.infer<typeof ContactUpdateSchema>): Promise<unknown>;
+export declare function contactUpdate(input: z.infer<typeof ContactUpdateSchema>, apiKey: string): Promise<unknown>;
 //# sourceMappingURL=contacts.d.ts.map

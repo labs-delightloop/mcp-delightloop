@@ -81,7 +81,7 @@ const server = new McpServer({
   version: "0.1.0",
 });
 
-// ─── Helper to wrap tool handlers with consistent error formatting ────────────
+// ─── Helper: wrap handlers with consistent error formatting ──────────────────
 
 function wrap<T>(fn: () => Promise<T>) {
   return fn()
@@ -101,51 +101,39 @@ function wrap<T>(fn: () => Promise<T>) {
 
 // ─── Contact tools ────────────────────────────────────────────────────────────
 
-// Remove apiKey from schemas since we inject it from env
-const ContactCreateInput = ContactCreateSchema.omit({ apiKey: true });
-const ContactBulkCreateInput = ContactBulkCreateSchema.omit({ apiKey: true });
-const ContactGetInput = ContactGetSchema.omit({ apiKey: true });
-const ContactListInput = ContactListSchema.omit({ apiKey: true });
-const ContactUpdateInput = ContactUpdateSchema.omit({ apiKey: true });
-
 server.tool(
   "contact_create",
   "Create a new contact in Delightloop",
-  ContactCreateInput.shape,
-  (input) =>
-    wrap(() => contactCreate({ ...input, apiKey: API_KEY! })),
+  ContactCreateSchema.shape,
+  (input) => wrap(() => contactCreate(input, API_KEY!)),
 );
 
 server.tool(
   "contact_bulk_create",
   "Create multiple contacts at once in Delightloop",
-  ContactBulkCreateInput.shape,
-  (input) =>
-    wrap(() => contactBulkCreate({ ...input, apiKey: API_KEY! })),
+  ContactBulkCreateSchema.shape,
+  (input) => wrap(() => contactBulkCreate(input, API_KEY!)),
 );
 
 server.tool(
   "contact_get",
   "Retrieve a single contact by ID from Delightloop",
-  ContactGetInput.shape,
-  (input) =>
-    wrap(() => contactGet({ ...input, apiKey: API_KEY! })),
+  ContactGetSchema.shape,
+  (input) => wrap(() => contactGet(input, API_KEY!)),
 );
 
 server.tool(
   "contact_list",
   "List contacts in Delightloop with optional search and pagination",
-  ContactListInput.shape,
-  (input) =>
-    wrap(() => contactList({ ...input, apiKey: API_KEY! })),
+  ContactListSchema.shape,
+  (input) => wrap(() => contactList(input, API_KEY!)),
 );
 
 server.tool(
   "contact_update",
   "Update an existing contact in Delightloop",
-  ContactUpdateInput.shape,
-  (input) =>
-    wrap(() => contactUpdate({ ...input, apiKey: API_KEY! })),
+  ContactUpdateSchema.shape,
+  (input) => wrap(() => contactUpdate(input, API_KEY!)),
 );
 
 // ─── Campaign tools ───────────────────────────────────────────────────────────
@@ -154,24 +142,21 @@ server.tool(
   "campaign_get",
   "Retrieve a single campaign by ID from Delightloop",
   CampaignGetSchema.shape,
-  (input) =>
-    wrap(() => campaignGet(input, API_KEY!)),
+  (input) => wrap(() => campaignGet(input, API_KEY!)),
 );
 
 server.tool(
   "campaign_list",
   "List campaigns in Delightloop. Filter by status (draft, live, paused, preparing, completed) or search by name.",
   CampaignListSchema.shape,
-  (input) =>
-    wrap(() => campaignList(input, API_KEY!)),
+  (input) => wrap(() => campaignList(input, API_KEY!)),
 );
 
 server.tool(
   "campaign_add_contacts",
   "Add one or more contacts to a live Delightloop campaign",
   CampaignAddContactsSchema.shape,
-  (input) =>
-    wrap(() => campaignAddContacts(input, API_KEY!)),
+  (input) => wrap(() => campaignAddContacts(input, API_KEY!)),
 );
 
 // ─── Webhook tools ────────────────────────────────────────────────────────────
@@ -180,32 +165,28 @@ server.tool(
   "webhook_create",
   "Create a webhook subscription in Delightloop. Events: campaign.created, campaign.updated, campaign.status_changed, campaign.deleted, campaign.recipients_added, recipient.created, recipient.status_changed, recipient.email_sent, recipient.feedback_submitted",
   WebhookCreateSchema.shape,
-  (input) =>
-    wrap(() => webhookCreate(input, API_KEY!)),
+  (input) => wrap(() => webhookCreate(input, API_KEY!)),
 );
 
 server.tool(
   "webhook_get",
   "Retrieve details of a single webhook subscription by ID",
   WebhookGetSchema.shape,
-  (input) =>
-    wrap(() => webhookGet(input, API_KEY!)),
+  (input) => wrap(() => webhookGet(input, API_KEY!)),
 );
 
 server.tool(
   "webhook_list",
   "List all webhook subscriptions registered in Delightloop",
   WebhookListSchema.shape,
-  (input) =>
-    wrap(() => webhookList(input, API_KEY!)),
+  (input) => wrap(() => webhookList(input, API_KEY!)),
 );
 
 server.tool(
   "webhook_delete",
   "Delete (unsubscribe) a webhook subscription from Delightloop",
   WebhookDeleteSchema.shape,
-  (input) =>
-    wrap(() => webhookDelete(input, API_KEY!)),
+  (input) => wrap(() => webhookDelete(input, API_KEY!)),
 );
 
 // ─── Start ────────────────────────────────────────────────────────────────────
