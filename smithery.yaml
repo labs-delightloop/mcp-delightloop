@@ -6,7 +6,7 @@ displayName: Delightloop
 description: >
   Manage Delightloop contacts, campaigns, and webhook subscriptions from any
   MCP-compatible AI assistant (Claude, Cursor, Windsurf, Continue, Cline, Zed).
-version: 0.1.4
+version: 0.1.5
 license: MIT
 homepage: https://delightloop.ai
 repository: https://github.com/labs-delightloop/mcp-delightloop
@@ -67,6 +67,10 @@ tools:
     description: Browse the Delightloop gift catalog with filters and pagination
   - name: gift_get
     description: Retrieve a single gift by ID
+  - name: email_send
+    description: Send a single personalized email via Delightloop
+  - name: email_bulk_send
+    description: Send multiple personalized emails in one call
   - name: webhook_create
     description: Subscribe a URL to Delightloop events
   - name: webhook_get

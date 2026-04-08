@@ -48,6 +48,13 @@ import {
 } from "./tools/gifts.js";
 
 import {
+  EmailSendSchema,
+  EmailBulkSendSchema,
+  emailSend,
+  emailBulkSend,
+} from "./tools/email.js";
+
+import {
   WebhookCreateSchema,
   WebhookGetSchema,
   WebhookListSchema,
@@ -85,7 +92,7 @@ function wrap<T>(fn: () => Promise<T>) {
 export function createMcpServer(apiKey: string): McpServer {
   const server = new McpServer({
     name: "mcp-delightloop",
-    version: "0.1.4",
+    version: "0.1.5",
   });
 
   // ── Contacts ───────────────────────────────────────────────────────────────
@@ -181,6 +188,21 @@ export function createMcpServer(apiKey: string): McpServer {
     "Retrieve a single gift by ID, including its name, description, price, images, inventory status, and collection info.",
     GiftGetSchema.shape,
     (input) => wrap(() => giftGet(input, apiKey)),
+  );
+
+  // ── Email ─────────────────────────────────────────────────────────────────
+  server.tool(
+    "email_send",
+    "Send a single personalized email via Delightloop. Provide recipient, subject, HTML body, and plain-text body. The sender address is auto-generated from your organization name if not specified.",
+    EmailSendSchema.shape,
+    (input) => wrap(() => emailSend(input, apiKey)),
+  );
+
+  server.tool(
+    "email_bulk_send",
+    "Send multiple personalized emails in one call. Each email in the array can have its own recipient, subject, and content. Ideal for outreach campaigns or bulk notifications.",
+    EmailBulkSendSchema.shape,
+    (input) => wrap(() => emailBulkSend(input, apiKey)),
   );
 
   // ── Campaigns ──────────────────────────────────────────────────────────────

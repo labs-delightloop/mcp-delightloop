@@ -85,7 +85,7 @@ export async function recipientGet(
 ) {
   const data = await dlRequest<Record<string, unknown>>({
     method: "GET",
-    path: `/api/campaigns/recipients/${input.recipientId}`,
+    path: `/api/campaigns/recipients/detail/${input.recipientId}`,
     apiKey,
   });
 

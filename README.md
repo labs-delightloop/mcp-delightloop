@@ -216,7 +216,7 @@ Once configured, just talk to your AI naturally:
 
 ---
 
-## Available tools (20 total)
+## Available tools (22 total)
 
 ### Contacts
 | Tool | Description |
@@ -253,6 +253,12 @@ Once configured, just talk to your AI naturally:
 |------|-------------|
 | `gift_list` | Browse the Delightloop gift catalog — filter by name, price, collection, or type |
 | `gift_get` | Retrieve a single gift by ID |
+
+### Email
+| Tool | Description |
+|------|-------------|
+| `email_send` | Send a single personalized email — recipient, subject, HTML + plain-text body |
+| `email_bulk_send` | Send multiple personalized emails in one call (each with its own content) |
 
 ### Webhooks
 | Tool | Description |
