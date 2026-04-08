@@ -24,8 +24,28 @@ import {
 
 import {
   RecipientGetSchema,
+  CampaignLaunchRecipientsSchema,
+  CampaignLaunchAllSchema,
+  RecipientTagSchema,
   recipientGet,
+  campaignLaunchRecipients,
+  campaignLaunchAll,
+  recipientTag,
 } from "./tools/recipients.js";
+
+import {
+  LinkedInProfileSchema,
+  WorkEmailSchema,
+  linkedInProfileGet,
+  workEmailGet,
+} from "./tools/enrichment.js";
+
+import {
+  GiftListSchema,
+  GiftGetSchema,
+  giftList,
+  giftGet,
+} from "./tools/gifts.js";
 
 import {
   WebhookCreateSchema,
@@ -65,7 +85,7 @@ function wrap<T>(fn: () => Promise<T>) {
 export function createMcpServer(apiKey: string): McpServer {
   const server = new McpServer({
     name: "mcp-delightloop",
-    version: "0.1.3",
+    version: "0.1.4",
   });
 
   // ── Contacts ───────────────────────────────────────────────────────────────
@@ -110,6 +130,57 @@ export function createMcpServer(apiKey: string): McpServer {
     "Get a recipient by ID, including their status, contact details, selected gift, shipment info, and — importantly — the landingPageUrl and claimPageUrl they were sent.",
     RecipientGetSchema.shape,
     (input) => wrap(() => recipientGet(input, apiKey)),
+  );
+
+  server.tool(
+    "campaign_launch_recipients",
+    "Launch specific recipients in a campaign. Use when a recipient's status is 'ready' — this activates their landing page and claim page URLs, creates dynamic video content, and sends the invitation email. After launch, status changes to 'invite_sent' (if email configured) or 'invited'.",
+    CampaignLaunchRecipientsSchema.shape,
+    (input) => wrap(() => campaignLaunchRecipients(input, apiKey)),
+  );
+
+  server.tool(
+    "campaign_launch_all",
+    "Launch ALL recipients in 'ready' status for a campaign in one shot. This makes the entire campaign go live — activates landing/claim pages, creates video content, and sends invitation emails to everyone. To launch only specific recipients, use campaign_launch_recipients instead.",
+    CampaignLaunchAllSchema.shape,
+    (input) => wrap(() => campaignLaunchAll(input, apiKey)),
+  );
+
+  server.tool(
+    "recipient_tag",
+    "Apply one or more tags (with a name and hex color) to specific recipients in a campaign. Useful for segmenting, filtering, or labelling recipients (e.g. 'VIP', 'Follow-up', 'Hot Lead').",
+    RecipientTagSchema.shape,
+    (input) => wrap(() => recipientTag(input, apiKey)),
+  );
+
+  // ── Enrichment ────────────────────────────────────────────────────────────
+  server.tool(
+    "linkedin_profile_get",
+    "Fetch a LinkedIn profile by URL. Returns name, headline, current job title, company, location, and profile image. No data is stored — purely a real-time lookup.",
+    LinkedInProfileSchema.shape,
+    (input) => wrap(() => linkedInProfileGet(input, apiKey)),
+  );
+
+  server.tool(
+    "work_email_get",
+    "Find a contact's work email address using their LinkedIn URL, or their first name + last name + company name. Also returns job title, seniority, company data, and all discovered emails.",
+    WorkEmailSchema.shape,
+    (input) => wrap(() => workEmailGet(input, apiKey)),
+  );
+
+  // ── Gifts ─────────────────────────────────────────────────────────────────
+  server.tool(
+    "gift_list",
+    "Browse the Delightloop gift catalog. Filter by name, price range, collection, or type (delightloop catalog, org collection, inventory). Returns paginated results with gift details and pricing.",
+    GiftListSchema.shape,
+    (input) => wrap(() => giftList(input, apiKey)),
+  );
+
+  server.tool(
+    "gift_get",
+    "Retrieve a single gift by ID, including its name, description, price, images, inventory status, and collection info.",
+    GiftGetSchema.shape,
+    (input) => wrap(() => giftGet(input, apiKey)),
   );
 
   // ── Campaigns ──────────────────────────────────────────────────────────────

@@ -6,7 +6,7 @@ displayName: Delightloop
 description: >
   Manage Delightloop contacts, campaigns, and webhook subscriptions from any
   MCP-compatible AI assistant (Claude, Cursor, Windsurf, Continue, Cline, Zed).
-version: 0.1.2
+version: 0.1.4
 license: MIT
 homepage: https://delightloop.ai
 repository: https://github.com/labs-delightloop/mcp-delightloop
@@ -53,6 +53,20 @@ tools:
     description: List campaigns — filter by status or name, supports returnAll
   - name: campaign_add_contacts
     description: Add one or more contacts to a live campaign
+  - name: campaign_launch_recipients
+    description: Launch specific recipients (status 'ready') — activates URLs and sends invitation email
+  - name: campaign_launch_all
+    description: Launch ALL ready recipients in a campaign in one shot
+  - name: recipient_tag
+    description: Apply tags (name + hex color) to one or more recipients in a campaign
+  - name: linkedin_profile_get
+    description: Fetch a LinkedIn profile by URL — returns name, headline, company, location, photo
+  - name: work_email_get
+    description: Find a contact's work email using LinkedIn URL or name + company
+  - name: gift_list
+    description: Browse the Delightloop gift catalog with filters and pagination
+  - name: gift_get
+    description: Retrieve a single gift by ID
   - name: webhook_create
     description: Subscribe a URL to Delightloop events
   - name: webhook_get
