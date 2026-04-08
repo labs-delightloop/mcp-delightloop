@@ -216,7 +216,7 @@ Once configured, just talk to your AI naturally:
 
 ---
 
-## Available tools (12 total)
+## Available tools (20 total)
 
 ### Contacts
 | Tool | Description |
@@ -233,6 +233,26 @@ Once configured, just talk to your AI naturally:
 | `campaign_get` | Retrieve a campaign by ID |
 | `campaign_list` | List campaigns — filter by status (`draft`, `live`, `paused`, `completed`), search, `returnAll` |
 | `campaign_add_contacts` | Add contacts to a live campaign |
+| `campaign_launch_recipients` | Launch specific recipients (status `ready`) — activates landing/claim page URLs and sends invitation email |
+| `campaign_launch_all` | Launch **all** ready recipients in a campaign in one shot |
+
+### Recipients
+| Tool | Description |
+|------|-------------|
+| `recipient_get` | Get a recipient by ID — includes status, gift info, shipment, `landingPageUrl`, `claimPageUrl` |
+| `recipient_tag` | Apply tags (name + hex color) to one or more recipients for segmentation |
+
+### Enrichment
+| Tool | Description |
+|------|-------------|
+| `linkedin_profile_get` | Fetch a LinkedIn profile by URL — returns name, headline, company, location, and profile photo |
+| `work_email_get` | Find a contact's work email using their LinkedIn URL or name + company name |
+
+### Gifts
+| Tool | Description |
+|------|-------------|
+| `gift_list` | Browse the Delightloop gift catalog — filter by name, price, collection, or type |
+| `gift_get` | Retrieve a single gift by ID |
 
 ### Webhooks
 | Tool | Description |
