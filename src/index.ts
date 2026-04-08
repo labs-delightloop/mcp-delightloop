@@ -27,9 +27,30 @@ if (PORT) {
   // Track active transports by session ID so POST /message can route correctly
   const transports = new Map<string, SSEServerTransport>();
 
-  // Health check — required by Railway / Render / Fly
+  // Root — friendly landing page
+  app.get("/", (_req, res) => {
+    res.json({
+      name: "Delightloop MCP Server",
+      version: "0.1.2",
+      status: "running",
+      description: "MCP server for Delightloop — manage contacts, campaigns, and webhooks from any AI assistant.",
+      docs: "https://www.npmjs.com/package/mcp-delightloop",
+      endpoints: {
+        health: "GET /health",
+        sse:    "GET /sse?apiKey=YOUR_DELIGHTLOOP_API_KEY",
+        message:"POST /message?sessionId=SESSION_ID",
+      },
+      tools: [
+        "contact_create", "contact_bulk_create", "contact_get", "contact_list", "contact_update",
+        "campaign_get", "campaign_list", "campaign_add_contacts",
+        "webhook_create", "webhook_get", "webhook_list", "webhook_delete",
+      ],
+    });
+  });
+
+  // Health check — used by Coolify / Railway / Traefik
   app.get("/health", (_req, res) => {
-    res.json({ status: "ok", server: "mcp-delightloop" });
+    res.json({ status: "ok", server: "mcp-delightloop", version: "0.1.2", uptime: Math.floor(process.uptime()) });
   });
 
   // SSE endpoint — one persistent connection per client
