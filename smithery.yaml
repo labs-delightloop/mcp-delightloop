@@ -1,33 +1,31 @@
 # Smithery MCP Registry manifest
-# https://smithery.ai — submit at https://smithery.ai/new
+# https://smithery.ai
 
 name: mcp-delightloop
 displayName: Delightloop
 description: >
   Manage Delightloop contacts, campaigns, and webhook subscriptions from any
   MCP-compatible AI assistant (Claude, Cursor, Windsurf, Continue, Cline, Zed).
-version: 0.1.0
+version: 0.1.2
 license: MIT
 homepage: https://delightloop.ai
 repository: https://github.com/labs-delightloop/mcp-delightloop
-icon: https://delightloop.ai/favicon.ico
 categories:
   - crm
   - marketing
   - gifting
   - automation
 
-# How to run the server
+# Smithery connects to your deployed HTTP server
+# Update this URL after deploying to Railway / Render / Fly
 startCommand:
-  type: stdio
-  command: npx
-  args:
-    - "-y"
-    - "mcp-delightloop"
+  type: http
+  url: https://mcp-delightloop.up.railway.app
 
-# Environment variables required by the server
+# Users configure their own API key in Smithery UI
+# Smithery passes it as ?apiKey= when connecting to /sse
 config:
-  DELIGHTLOOP_API_KEY:
+  apiKey:
     type: string
     description: >
       Your Delightloop API key.
@@ -37,7 +35,6 @@ config:
 
 # All tools this server exposes
 tools:
-  # ── Contacts ──────────────────────────────────────────────────────────────
   - name: contact_create
     description: Create a new contact in Delightloop
   - name: contact_bulk_create
@@ -48,16 +45,12 @@ tools:
     description: List contacts with search and pagination (supports returnAll)
   - name: contact_update
     description: Update an existing contact
-
-  # ── Campaigns ─────────────────────────────────────────────────────────────
   - name: campaign_get
     description: Retrieve a single campaign by ID
   - name: campaign_list
     description: List campaigns — filter by status or name, supports returnAll
   - name: campaign_add_contacts
     description: Add one or more contacts to a live campaign
-
-  # ── Webhooks ──────────────────────────────────────────────────────────────
   - name: webhook_create
     description: Subscribe a URL to Delightloop events
   - name: webhook_get

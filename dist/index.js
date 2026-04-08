@@ -2,75 +2,90 @@
 /**
  * Delightloop MCP Server
  *
- * Authentication: set DELIGHTLOOP_API_KEY env variable before starting.
- *
- * Tools exposed:
- *  Contacts:  contact_create, contact_bulk_create, contact_get, contact_list, contact_update
- *  Campaigns: campaign_get, campaign_list, campaign_add_contacts
- *  Webhooks:  webhook_create, webhook_get, webhook_list, webhook_delete
+ * Runs in two modes:
+ *  - stdio  (local): set DELIGHTLOOP_API_KEY env var, no PORT
+ *  - HTTP   (remote / Smithery): set PORT, API key passed per-connection via ?apiKey=
  */
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
+import express from "express";
 import { validateApiKey } from "./client.js";
-import { ContactCreateSchema, ContactBulkCreateSchema, ContactGetSchema, ContactListSchema, ContactUpdateSchema, contactCreate, contactBulkCreate, contactGet, contactList, contactUpdate, } from "./tools/contacts.js";
-import { CampaignGetSchema, CampaignListSchema, CampaignAddContactsSchema, campaignGet, campaignList, campaignAddContacts, } from "./tools/campaigns.js";
-import { WebhookCreateSchema, WebhookGetSchema, WebhookListSchema, WebhookDeleteSchema, webhookCreate, webhookGet, webhookList, webhookDelete, } from "./tools/webhooks.js";
-// ─── Auth ────────────────────────────────────────────────────────────────────
-const API_KEY = process.env.DELIGHTLOOP_API_KEY;
-if (!API_KEY) {
-    console.error("[mcp-delightloop] ERROR: DELIGHTLOOP_API_KEY environment variable is not set.\n" +
-        "Set it before starting the server:\n" +
-        "  DELIGHTLOOP_API_KEY=your_key node dist/index.js");
-    process.exit(1);
+import { createMcpServer } from "./mcp.js";
+const PORT = process.env.PORT;
+// ─────────────────────────────────────────────────────────────────────────────
+//  HTTP / SSE mode  (Smithery gateway + remote clients)
+// ─────────────────────────────────────────────────────────────────────────────
+if (PORT) {
+    const app = express();
+    app.use(express.json());
+    // Track active transports by session ID so POST /message can route correctly
+    const transports = new Map();
+    // Health check — required by Railway / Render / Fly
+    app.get("/health", (_req, res) => {
+        res.json({ status: "ok", server: "mcp-delightloop" });
+    });
+    // SSE endpoint — one persistent connection per client
+    // API key is passed as ?apiKey=  (Smithery injects it from user config)
+    app.get("/sse", async (req, res) => {
+        const apiKey = req.query["DELIGHTLOOP_API_KEY"] ||
+            req.query["apiKey"] ||
+            req.headers["x-api-key"];
+        if (!apiKey) {
+            res.status(401).json({
+                error: "Missing API key — pass ?apiKey=YOUR_KEY or x-api-key header",
+            });
+            return;
+        }
+        try {
+            await validateApiKey(apiKey);
+        }
+        catch (err) {
+            res.status(401).json({
+                error: `Invalid or expired API key: ${err instanceof Error ? err.message : String(err)}`,
+            });
+            return;
+        }
+        const server = createMcpServer(apiKey);
+        const transport = new SSEServerTransport("/message", res);
+        transports.set(transport.sessionId, transport);
+        transport.onclose = () => transports.delete(transport.sessionId);
+        await server.connect(transport);
+    });
+    // Message endpoint — client POSTs MCP messages here
+    app.post("/message", async (req, res) => {
+        const sessionId = req.query["sessionId"];
+        const transport = transports.get(sessionId);
+        if (!transport) {
+            res.status(404).json({ error: "Session not found or expired" });
+            return;
+        }
+        await transport.handlePostMessage(req, res);
+    });
+    app.listen(parseInt(PORT, 10), () => {
+        console.log(`[mcp-delightloop] HTTP server listening on port ${PORT}`);
+    });
+    // ─────────────────────────────────────────────────────────────────────────────
+    //  stdio mode  (Claude Desktop, Cursor, Windsurf, Cline, Zed…)
+    // ─────────────────────────────────────────────────────────────────────────────
 }
-// Validate the key against Delightloop user service before starting
-let authContext;
-try {
-    authContext = await validateApiKey(API_KEY);
-    console.error(`[mcp-delightloop] Authenticated — userId: ${authContext.userId} | orgId: ${authContext.orgId}`);
+else {
+    const API_KEY = process.env.DELIGHTLOOP_API_KEY;
+    if (!API_KEY) {
+        console.error("[mcp-delightloop] ERROR: DELIGHTLOOP_API_KEY is not set.\n" +
+            "  DELIGHTLOOP_API_KEY=your_key node dist/index.js");
+        process.exit(1);
+    }
+    try {
+        const ctx = await validateApiKey(API_KEY);
+        console.error(`[mcp-delightloop] Authenticated — userId: ${ctx.userId} | orgId: ${ctx.orgId}`);
+    }
+    catch (err) {
+        console.error(`[mcp-delightloop] Auth failed: ${err instanceof Error ? err.message : String(err)}`);
+        process.exit(1);
+    }
+    const server = createMcpServer(API_KEY);
+    const transport = new StdioServerTransport();
+    await server.connect(transport);
+    console.error("[mcp-delightloop] Server running on stdio");
 }
-catch (err) {
-    console.error(`[mcp-delightloop] Auth failed: ${err instanceof Error ? err.message : String(err)}`);
-    process.exit(1);
-}
-// ─── Server ──────────────────────────────────────────────────────────────────
-const server = new McpServer({
-    name: "mcp-delightloop",
-    version: "0.1.0",
-});
-// ─── Helper: wrap handlers with consistent error formatting ──────────────────
-function wrap(fn) {
-    return fn()
-        .then((result) => ({
-        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
-    }))
-        .catch((err) => ({
-        content: [
-            {
-                type: "text",
-                text: `Error: ${err instanceof Error ? err.message : String(err)}`,
-            },
-        ],
-        isError: true,
-    }));
-}
-// ─── Contact tools ────────────────────────────────────────────────────────────
-server.tool("contact_create", "Create a new contact in Delightloop", ContactCreateSchema.shape, (input) => wrap(() => contactCreate(input, API_KEY)));
-server.tool("contact_bulk_create", "Create multiple contacts at once in Delightloop", ContactBulkCreateSchema.shape, (input) => wrap(() => contactBulkCreate(input, API_KEY)));
-server.tool("contact_get", "Retrieve a single contact by ID from Delightloop", ContactGetSchema.shape, (input) => wrap(() => contactGet(input, API_KEY)));
-server.tool("contact_list", "List contacts in Delightloop with optional search and pagination", ContactListSchema.shape, (input) => wrap(() => contactList(input, API_KEY)));
-server.tool("contact_update", "Update an existing contact in Delightloop", ContactUpdateSchema.shape, (input) => wrap(() => contactUpdate(input, API_KEY)));
-// ─── Campaign tools ───────────────────────────────────────────────────────────
-server.tool("campaign_get", "Retrieve a single campaign by ID from Delightloop", CampaignGetSchema.shape, (input) => wrap(() => campaignGet(input, API_KEY)));
-server.tool("campaign_list", "List campaigns in Delightloop. Filter by status (draft, live, paused, preparing, completed) or search by name.", CampaignListSchema.shape, (input) => wrap(() => campaignList(input, API_KEY)));
-server.tool("campaign_add_contacts", "Add one or more contacts to a live Delightloop campaign", CampaignAddContactsSchema.shape, (input) => wrap(() => campaignAddContacts(input, API_KEY)));
-// ─── Webhook tools ────────────────────────────────────────────────────────────
-server.tool("webhook_create", "Create a webhook subscription in Delightloop. Events: campaign.created, campaign.updated, campaign.status_changed, campaign.deleted, campaign.recipients_added, recipient.created, recipient.status_changed, recipient.email_sent, recipient.feedback_submitted", WebhookCreateSchema.shape, (input) => wrap(() => webhookCreate(input, API_KEY)));
-server.tool("webhook_get", "Retrieve details of a single webhook subscription by ID", WebhookGetSchema.shape, (input) => wrap(() => webhookGet(input, API_KEY)));
-server.tool("webhook_list", "List all webhook subscriptions registered in Delightloop", WebhookListSchema.shape, (input) => wrap(() => webhookList(input, API_KEY)));
-server.tool("webhook_delete", "Delete (unsubscribe) a webhook subscription from Delightloop", WebhookDeleteSchema.shape, (input) => wrap(() => webhookDelete(input, API_KEY)));
-// ─── Start ────────────────────────────────────────────────────────────────────
-const transport = new StdioServerTransport();
-await server.connect(transport);
-console.error("[mcp-delightloop] Server running on stdio");
 //# sourceMappingURL=index.js.map
