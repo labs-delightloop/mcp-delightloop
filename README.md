@@ -6,7 +6,7 @@
 [![npm version](https://img.shields.io/npm/v/mcp-delightloop)](https://www.npmjs.com/package/mcp-delightloop)
 [![license](https://img.shields.io/npm/l/mcp-delightloop)](https://www.npmjs.com/package/mcp-delightloop)
 
-**Live server:** `https://mcp-delightloop.makesamhappy.com`
+**Live server:** `https://mcp.delightloop.ai`
 
 ---
 
@@ -25,7 +25,23 @@
 
 ## Quick setup (all clients)
 
-The config block is the same for every AI tool — only the **file location** changes:
+### Option A — Remote server (no install needed)
+
+Connect directly to the hosted server. Just replace `YOUR_API_KEY_HERE`:
+
+```json
+{
+  "mcpServers": {
+    "delightloop": {
+      "url": "https://mcp.delightloop.ai/sse?apiKey=YOUR_API_KEY_HERE"
+    }
+  }
+}
+```
+
+### Option B — Local via npx
+
+Runs the server locally on your machine:
 
 ```json
 {
