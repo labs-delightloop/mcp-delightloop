@@ -92,7 +92,7 @@ function wrap<T>(fn: () => Promise<T>) {
 export function createMcpServer(apiKey: string): McpServer {
   const server = new McpServer({
     name: "mcp-delightloop",
-    version: "0.1.6",
+    version: "0.1.7",
   });
 
   // ── Contacts ───────────────────────────────────────────────────────────────
