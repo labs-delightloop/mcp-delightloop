@@ -20,7 +20,7 @@ categories:
 # Update this URL after deploying to Railway / Render / Fly
 startCommand:
   type: http
-  url: https://mcp.delightloop.ai
+  url: https://mcp.delightloop.vip
 
 # Users configure their own API key in Smithery UI
 # Smithery passes it as ?apiKey= when connecting to /sse

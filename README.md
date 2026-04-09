@@ -6,7 +6,7 @@
 [![npm version](https://img.shields.io/npm/v/mcp-delightloop)](https://www.npmjs.com/package/mcp-delightloop)
 [![license](https://img.shields.io/npm/l/mcp-delightloop)](https://www.npmjs.com/package/mcp-delightloop)
 
-**Live server:** `https://mcp.delightloop.ai`
+**Live server:** `https://mcp.delightloop.vip`
 
 ---
 
@@ -33,7 +33,7 @@ Connect directly to the hosted server. Just replace `YOUR_API_KEY_HERE`:
 {
   "mcpServers": {
     "delightloop": {
-      "url": "https://mcp.delightloop.ai/sse?apiKey=YOUR_API_KEY_HERE"
+      "url": "https://mcp.delightloop.vip/sse?apiKey=YOUR_API_KEY_HERE"
     }
   }
 }
