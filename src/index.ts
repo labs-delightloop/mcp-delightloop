@@ -31,9 +31,9 @@ if (PORT) {
   app.get("/", (_req, res) => {
     res.json({
       name: "Delightloop MCP Server",
-      version: "0.1.2",
+      version: "0.1.5",
       status: "running",
-      description: "MCP server for Delightloop — manage contacts, campaigns, and webhooks from any AI assistant.",
+      description: "MCP server for Delightloop — manage contacts, campaigns, gifts, email, enrichment, and webhooks from any AI assistant.",
       docs: "https://www.npmjs.com/package/mcp-delightloop",
       endpoints: {
         health: "GET /health",
@@ -42,7 +42,11 @@ if (PORT) {
       },
       tools: [
         "contact_create", "contact_bulk_create", "contact_get", "contact_list", "contact_update",
+        "recipient_get", "campaign_launch_recipients", "campaign_launch_all", "recipient_tag",
         "campaign_get", "campaign_list", "campaign_add_contacts",
+        "linkedin_profile_get", "work_email_get",
+        "gift_list", "gift_get",
+        "email_send", "email_bulk_send",
         "webhook_create", "webhook_get", "webhook_list", "webhook_delete",
       ],
     });
@@ -50,7 +54,7 @@ if (PORT) {
 
   // Health check — used by Coolify / Railway / Traefik
   app.get("/health", (_req, res) => {
-    res.json({ status: "ok", server: "mcp-delightloop", version: "0.1.2", uptime: Math.floor(process.uptime()) });
+    res.json({ status: "ok", server: "mcp-delightloop", version: "0.1.5", uptime: Math.floor(process.uptime()) });
   });
 
   // SSE endpoint — one persistent connection per client
