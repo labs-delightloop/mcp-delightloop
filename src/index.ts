@@ -15,14 +15,28 @@ import { validateApiKey } from "./client.js";
 import { createMcpServer } from "./mcp.js";
 
 const PORT = process.env.PORT;
+const VERSION = "0.1.5";
+
+function log(msg: string) {
+  console.error(`[mcp-delightloop] ${msg}`);
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  HTTP / SSE mode  (Smithery gateway + remote clients)
 // ─────────────────────────────────────────────────────────────────────────────
 
 if (PORT) {
+  log(`Starting HTTP mode — version ${VERSION}, port ${PORT}`);
+  log(`Node ${process.version} | pid ${process.pid}`);
+
   const app = express();
   app.use(express.json());
+
+  // Log every incoming request
+  app.use((req, _res, next) => {
+    log(`${req.method} ${req.path} — ip: ${req.ip}, query: ${JSON.stringify(req.query)}`);
+    next();
+  });
 
   // Track active transports by session ID so POST /message can route correctly
   const transports = new Map<string, SSEServerTransport>();
@@ -31,7 +45,7 @@ if (PORT) {
   app.get("/", (_req, res) => {
     res.json({
       name: "Delightloop MCP Server",
-      version: "0.1.5",
+      version: VERSION,
       status: "running",
       description: "MCP server for Delightloop — manage contacts, campaigns, gifts, email, enrichment, and webhooks from any AI assistant.",
       docs: "https://www.npmjs.com/package/mcp-delightloop",
@@ -54,7 +68,7 @@ if (PORT) {
 
   // Health check — used by Coolify / Railway / Traefik
   app.get("/health", (_req, res) => {
-    res.json({ status: "ok", server: "mcp-delightloop", version: "0.1.5", uptime: Math.floor(process.uptime()) });
+    res.json({ status: "ok", server: "mcp-delightloop", version: VERSION, uptime: Math.floor(process.uptime()) });
   });
 
   // SSE endpoint — one persistent connection per client
@@ -66,17 +80,24 @@ if (PORT) {
       (req.headers["x-api-key"] as string);
 
     if (!apiKey) {
+      log("SSE rejected — no API key provided");
       res.status(401).json({
         error: "Missing API key — pass ?apiKey=YOUR_KEY or x-api-key header",
       });
       return;
     }
 
+    log(`SSE — validating API key (key prefix: ${apiKey.slice(0, 8)}...)`);
+
+    let ctx: { userId: string; orgId: string };
     try {
-      await validateApiKey(apiKey);
+      ctx = await validateApiKey(apiKey);
+      log(`SSE — auth OK: userId=${ctx.userId} orgId=${ctx.orgId}`);
     } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      log(`SSE — auth FAILED: ${msg}`);
       res.status(401).json({
-        error: `Invalid or expired API key: ${err instanceof Error ? err.message : String(err)}`,
+        error: `Invalid or expired API key: ${msg}`,
       });
       return;
     }
@@ -85,9 +106,18 @@ if (PORT) {
     const transport = new SSEServerTransport("/message", res);
 
     transports.set(transport.sessionId, transport);
-    transport.onclose = () => transports.delete(transport.sessionId);
+    log(`SSE — session opened: ${transport.sessionId} (active sessions: ${transports.size})`);
 
-    await server.connect(transport);
+    transport.onclose = () => {
+      transports.delete(transport.sessionId);
+      log(`SSE — session closed: ${transport.sessionId} (active sessions: ${transports.size})`);
+    };
+
+    try {
+      await server.connect(transport);
+    } catch (err) {
+      log(`SSE — server.connect error: ${err instanceof Error ? err.message : String(err)}`);
+    }
   });
 
   // Message endpoint — client POSTs MCP messages here
@@ -96,15 +126,43 @@ if (PORT) {
     const transport = transports.get(sessionId);
 
     if (!transport) {
+      log(`POST /message — session not found: ${sessionId}`);
       res.status(404).json({ error: "Session not found or expired" });
       return;
     }
 
-    await transport.handlePostMessage(req, res);
+    try {
+      await transport.handlePostMessage(req, res);
+    } catch (err) {
+      log(`POST /message — error: ${err instanceof Error ? err.message : String(err)}`);
+      if (!res.headersSent) {
+        res.status(500).json({ error: "Internal server error" });
+      }
+    }
   });
 
-  app.listen(parseInt(PORT, 10), () => {
-    console.log(`[mcp-delightloop] HTTP server listening on port ${PORT}`);
+  // Catch-all for unknown routes
+  app.use((req, res) => {
+    log(`404 — unknown route: ${req.method} ${req.path}`);
+    res.status(404).json({ error: `Unknown route: ${req.method} ${req.path}` });
+  });
+
+  // Global error handler
+  app.use((err: unknown, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+    log(`Unhandled error on ${req.method} ${req.path}: ${err instanceof Error ? err.message : String(err)}`);
+    if (!res.headersSent) {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.listen(parseInt(PORT, 10), "0.0.0.0", () => {
+    log(`HTTP server listening on 0.0.0.0:${PORT}`);
+    log(`FQDN reachable at: ${process.env.FQDN || "(not set)"}`);
+  });
+
+  // Log unhandled promise rejections so they appear in Coolify logs
+  process.on("unhandledRejection", (reason) => {
+    log(`Unhandled rejection: ${reason instanceof Error ? reason.stack : String(reason)}`);
   });
 
 // ─────────────────────────────────────────────────────────────────────────────
