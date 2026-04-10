@@ -22,7 +22,7 @@ import { validateApiKey } from "./client.js";
 import { createMcpServer } from "./mcp.js";
 
 const PORT = process.env.PORT;
-const VERSION = "0.1.10";
+const VERSION = "0.1.11";
 
 function log(msg: string) {
   console.error(`[mcp-delightloop] ${msg}`);
@@ -342,6 +342,12 @@ if (PORT) {
   app.post("/sse", handleStreamable);
 
   app.get("/sse", async (req, res) => {
+    // If mcp-session-id present → StreamableHTTP GET (server-sent events for existing session)
+    if (req.headers["mcp-session-id"]) {
+      return handleStreamable(req, res);
+    }
+
+    // Legacy SSE — old clients (no session ID)
     const apiKey = extractApiKey(req);
     if (!apiKey) {
       res.status(401).json({ error: "Missing API key" });
