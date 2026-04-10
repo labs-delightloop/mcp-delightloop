@@ -16,7 +16,7 @@ export const CampaignListSchema = z.object({
   limit: z
     .number()
     .min(1)
-    .max(500)
+    .max(100)
     .optional()
     .default(50)
     .describe("Max number of campaigns to return (ignored when returnAll=true)"),

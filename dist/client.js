@@ -58,7 +58,7 @@ export async function fetchAllPages(apiKey, path, itemsKey, query = {}) {
             method: "GET",
             path,
             apiKey,
-            query: { ...query, page, limit: 500 },
+            query: { ...query, page, limit: 100 },
         });
         const items = res[itemsKey] ?? [];
         all.push(...items);

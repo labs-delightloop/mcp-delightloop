@@ -4,7 +4,7 @@ import { dlRequest } from "../client.js";
 export const RecipientListSchema = z.object({
     campaignId: z.string().describe("The ID of the campaign to list recipients for"),
     returnAll: z.boolean().optional().default(false).describe("If true, fetch all pages automatically"),
-    limit: z.number().min(1).max(500).optional().default(50).describe("Max recipients per page (ignored when returnAll=true)"),
+    limit: z.number().min(1).max(100).optional().default(50).describe("Max recipients per page (ignored when returnAll=true)"),
     page: z.number().min(1).optional().default(1).describe("Page number"),
     status: z
         .enum([
@@ -117,7 +117,7 @@ export async function recipientList(input, apiKey) {
                 method: "GET",
                 path: `/api/campaigns/campaigns/${input.campaignId}/recipients`,
                 apiKey,
-                query: buildQuery(page, 500),
+                query: buildQuery(page, 100),
             });
             const items = res.recipients ?? [];
             all.push(...items);

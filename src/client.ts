@@ -85,7 +85,7 @@ export async function fetchAllPages<T>(
       method: "GET",
       path,
       apiKey,
-      query: { ...query, page, limit: 500 },
+      query: { ...query, page, limit: 100 },
     });
 
     const items = (res[itemsKey] as T[]) ?? [];
