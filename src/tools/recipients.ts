@@ -9,7 +9,19 @@ export const RecipientListSchema = z.object({
   limit: z.number().min(1).max(500).optional().default(50).describe("Max recipients per page (ignored when returnAll=true)"),
   page: z.number().min(1).optional().default(1).describe("Page number"),
   status: z
-    .enum(["ready", "invited", "invite_sent", "claimed", "fulfilled", "expired", "cancelled"])
+    .enum([
+      "draft",
+      "ready",
+      "invited",
+      "invite_sent",
+      "address_confirmed",
+      "processing",
+      "shipped",
+      "in_transit",
+      "delivered",
+      "acknowledged",
+      "cancelled",
+    ])
     .optional()
     .describe("Filter by recipient status"),
 });

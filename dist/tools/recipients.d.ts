@@ -4,18 +4,18 @@ export declare const RecipientListSchema: z.ZodObject<{
     returnAll: z.ZodDefault<z.ZodOptional<z.ZodBoolean>>;
     limit: z.ZodDefault<z.ZodOptional<z.ZodNumber>>;
     page: z.ZodDefault<z.ZodOptional<z.ZodNumber>>;
-    status: z.ZodOptional<z.ZodEnum<["ready", "invited", "invite_sent", "claimed", "fulfilled", "expired", "cancelled"]>>;
+    status: z.ZodOptional<z.ZodEnum<["draft", "ready", "invited", "invite_sent", "address_confirmed", "processing", "shipped", "in_transit", "delivered", "acknowledged", "cancelled"]>>;
 }, "strip", z.ZodTypeAny, {
     page: number;
     limit: number;
     returnAll: boolean;
     campaignId: string;
-    status?: "ready" | "invited" | "invite_sent" | "claimed" | "fulfilled" | "expired" | "cancelled" | undefined;
+    status?: "draft" | "ready" | "invited" | "invite_sent" | "address_confirmed" | "processing" | "shipped" | "in_transit" | "delivered" | "acknowledged" | "cancelled" | undefined;
 }, {
     campaignId: string;
     page?: number | undefined;
     limit?: number | undefined;
-    status?: "ready" | "invited" | "invite_sent" | "claimed" | "fulfilled" | "expired" | "cancelled" | undefined;
+    status?: "draft" | "ready" | "invited" | "invite_sent" | "address_confirmed" | "processing" | "shipped" | "in_transit" | "delivered" | "acknowledged" | "cancelled" | undefined;
     returnAll?: boolean | undefined;
 }>;
 export declare const RecipientGetSchema: z.ZodObject<{
