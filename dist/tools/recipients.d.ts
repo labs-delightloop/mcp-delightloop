@@ -1,4 +1,23 @@
 import { z } from "zod";
+export declare const RecipientListSchema: z.ZodObject<{
+    campaignId: z.ZodString;
+    returnAll: z.ZodDefault<z.ZodOptional<z.ZodBoolean>>;
+    limit: z.ZodDefault<z.ZodOptional<z.ZodNumber>>;
+    page: z.ZodDefault<z.ZodOptional<z.ZodNumber>>;
+    status: z.ZodOptional<z.ZodEnum<["ready", "invited", "invite_sent", "claimed", "fulfilled", "expired", "cancelled"]>>;
+}, "strip", z.ZodTypeAny, {
+    page: number;
+    limit: number;
+    returnAll: boolean;
+    campaignId: string;
+    status?: "ready" | "invited" | "invite_sent" | "claimed" | "fulfilled" | "expired" | "cancelled" | undefined;
+}, {
+    campaignId: string;
+    page?: number | undefined;
+    limit?: number | undefined;
+    status?: "ready" | "invited" | "invite_sent" | "claimed" | "fulfilled" | "expired" | "cancelled" | undefined;
+    returnAll?: boolean | undefined;
+}>;
 export declare const RecipientGetSchema: z.ZodObject<{
     recipientId: z.ZodString;
 }, "strip", z.ZodTypeAny, {
@@ -56,6 +75,44 @@ export declare const RecipientTagSchema: z.ZodObject<{
     }[];
     campaignId: string;
     recipientIds: string[];
+}>;
+/** List recipients for a campaign with optional pagination and status filter */
+export declare function recipientList(input: z.infer<typeof RecipientListSchema>, apiKey: string): Promise<{
+    recipients: {
+        recipientId: unknown;
+        status: unknown;
+        contactId: unknown;
+        name: {};
+        email: unknown;
+        landingPageUrl: string;
+        claimPageUrl: string;
+        tags: unknown;
+        createdAt: unknown;
+        updatedAt: unknown;
+    }[];
+    total: number;
+    campaignId: string;
+    page?: undefined;
+    totalPages?: undefined;
+    statusCounts?: undefined;
+} | {
+    recipients: {
+        recipientId: unknown;
+        status: unknown;
+        contactId: unknown;
+        name: {};
+        email: unknown;
+        landingPageUrl: string;
+        claimPageUrl: string;
+        tags: unknown;
+        createdAt: unknown;
+        updatedAt: unknown;
+    }[];
+    total: unknown;
+    page: unknown;
+    totalPages: unknown;
+    statusCounts: unknown;
+    campaignId: string;
 }>;
 /** Get a single recipient by ID — surfaces landingPageUrl and claimPageUrl at top level */
 export declare function recipientGet(input: z.infer<typeof RecipientGetSchema>, apiKey: string): Promise<{

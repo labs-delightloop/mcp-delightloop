@@ -22,7 +22,7 @@ import { validateApiKey } from "./client.js";
 import { createMcpServer } from "./mcp.js";
 
 const PORT = process.env.PORT;
-const VERSION = "0.1.11";
+const VERSION = "0.1.12";
 
 function log(msg: string) {
   console.error(`[mcp-delightloop] ${msg}`);

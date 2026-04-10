@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { ContactCreateSchema, ContactBulkCreateSchema, ContactGetSchema, ContactListSchema, ContactUpdateSchema, contactCreate, contactBulkCreate, contactGet, contactList, contactUpdate, } from "./tools/contacts.js";
 import { CampaignGetSchema, CampaignListSchema, CampaignAddContactsSchema, campaignGet, campaignList, campaignAddContacts, } from "./tools/campaigns.js";
-import { RecipientGetSchema, CampaignLaunchRecipientsSchema, CampaignLaunchAllSchema, RecipientTagSchema, recipientGet, campaignLaunchRecipients, campaignLaunchAll, recipientTag, } from "./tools/recipients.js";
+import { RecipientListSchema, RecipientGetSchema, CampaignLaunchRecipientsSchema, CampaignLaunchAllSchema, RecipientTagSchema, recipientList, recipientGet, campaignLaunchRecipients, campaignLaunchAll, recipientTag, } from "./tools/recipients.js";
 import { LinkedInProfileSchema, WorkEmailSchema, linkedInProfileGet, workEmailGet, } from "./tools/enrichment.js";
 import { GiftListSchema, GiftGetSchema, giftList, giftGet, } from "./tools/gifts.js";
 import { EmailSendSchema, EmailBulkSendSchema, emailSend, emailBulkSend, } from "./tools/email.js";
@@ -30,7 +30,7 @@ function wrap(fn) {
 export function createMcpServer(apiKey) {
     const server = new McpServer({
         name: "mcp-delightloop",
-        version: "0.1.11",
+        version: "0.1.12",
     });
     // ── Contacts ───────────────────────────────────────────────────────────────
     server.tool("contact_create", "Create a new contact in Delightloop", ContactCreateSchema.shape, (input) => wrap(() => contactCreate(input, apiKey)));
@@ -39,6 +39,7 @@ export function createMcpServer(apiKey) {
     server.tool("contact_list", "List contacts in Delightloop with optional search and pagination", ContactListSchema.shape, (input) => wrap(() => contactList(input, apiKey)));
     server.tool("contact_update", "Update an existing contact in Delightloop", ContactUpdateSchema.shape, (input) => wrap(() => contactUpdate(input, apiKey)));
     // ── Recipients ────────────────────────────────────────────────────────────
+    server.tool("recipient_list", "List recipients for a campaign. Filter by status (ready, invited, invite_sent, claimed, fulfilled, expired, cancelled). Use returnAll:true to fetch all pages automatically.", RecipientListSchema.shape, (input) => wrap(() => recipientList(input, apiKey)));
     server.tool("recipient_get", "Get a recipient by ID, including their status, contact details, selected gift, shipment info, and — importantly — the landingPageUrl and claimPageUrl they were sent.", RecipientGetSchema.shape, (input) => wrap(() => recipientGet(input, apiKey)));
     server.tool("campaign_launch_recipients", "Launch specific recipients in a campaign. Use when a recipient's status is 'ready' — this activates their landing page and claim page URLs, creates dynamic video content, and sends the invitation email. After launch, status changes to 'invite_sent' (if email configured) or 'invited'.", CampaignLaunchRecipientsSchema.shape, (input) => wrap(() => campaignLaunchRecipients(input, apiKey)));
     server.tool("campaign_launch_all", "Launch ALL recipients in 'ready' status for a campaign in one shot. This makes the entire campaign go live — activates landing/claim pages, creates video content, and sends invitation emails to everyone. To launch only specific recipients, use campaign_launch_recipients instead.", CampaignLaunchAllSchema.shape, (input) => wrap(() => campaignLaunchAll(input, apiKey)));

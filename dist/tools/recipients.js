@@ -1,6 +1,16 @@
 import { z } from "zod";
 import { dlRequest } from "../client.js";
 // ─── Schemas ─────────────────────────────────────────────────────────────────
+export const RecipientListSchema = z.object({
+    campaignId: z.string().describe("The ID of the campaign to list recipients for"),
+    returnAll: z.boolean().optional().default(false).describe("If true, fetch all pages automatically"),
+    limit: z.number().min(1).max(500).optional().default(50).describe("Max recipients per page (ignored when returnAll=true)"),
+    page: z.number().min(1).optional().default(1).describe("Page number"),
+    status: z
+        .enum(["ready", "invited", "invite_sent", "claimed", "fulfilled", "expired", "cancelled"])
+        .optional()
+        .describe("Filter by recipient status"),
+});
 export const RecipientGetSchema = z.object({
     recipientId: z
         .string()
@@ -63,6 +73,71 @@ export const RecipientTagSchema = z.object({
         .describe("One or more tags to apply to the recipients"),
 });
 // ─── Handlers ────────────────────────────────────────────────────────────────
+function simplifyRecipient(r) {
+    const contact = r.contactDetails ?? {};
+    const urls = r.urls ?? {};
+    return {
+        recipientId: r.recipientId,
+        status: r.status,
+        contactId: r.sourceId,
+        name: contact.fullName ?? `${contact.firstName ?? ""} ${contact.lastName ?? ""}`.trim(),
+        email: contact.email,
+        landingPageUrl: urls.landingPage ?? null,
+        claimPageUrl: urls.claimPage ?? null,
+        tags: r.tags,
+        createdAt: r.createdAt,
+        updatedAt: r.updatedAt,
+    };
+}
+/** List recipients for a campaign with optional pagination and status filter */
+export async function recipientList(input, apiKey) {
+    const buildQuery = (page, limit) => {
+        const q = { page, limit };
+        if (input.status)
+            q.status = input.status;
+        return q;
+    };
+    if (input.returnAll) {
+        const all = [];
+        let page = 1;
+        while (true) {
+            const res = await dlRequest({
+                method: "GET",
+                path: `/api/campaigns/campaigns/${input.campaignId}/recipients`,
+                apiKey,
+                query: buildQuery(page, 500),
+            });
+            const items = res.recipients ?? [];
+            all.push(...items);
+            const pagination = res.pagination ?? {};
+            const totalPages = pagination.totalPages ?? 1;
+            if (page >= totalPages || items.length === 0)
+                break;
+            page++;
+        }
+        return {
+            recipients: all.map(simplifyRecipient),
+            total: all.length,
+            campaignId: input.campaignId,
+        };
+    }
+    const res = await dlRequest({
+        method: "GET",
+        path: `/api/campaigns/campaigns/${input.campaignId}/recipients`,
+        apiKey,
+        query: buildQuery(input.page ?? 1, input.limit ?? 50),
+    });
+    const recipients = res.recipients ?? [];
+    const pagination = res.pagination ?? {};
+    return {
+        recipients: recipients.map(simplifyRecipient),
+        total: pagination.total,
+        page: pagination.currentPage,
+        totalPages: pagination.totalPages,
+        statusCounts: res.statusCounts,
+        campaignId: input.campaignId,
+    };
+}
 /** Get a single recipient by ID — surfaces landingPageUrl and claimPageUrl at top level */
 export async function recipientGet(input, apiKey) {
     const data = await dlRequest({

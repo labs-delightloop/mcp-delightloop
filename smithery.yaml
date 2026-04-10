@@ -6,7 +6,7 @@ displayName: Delightloop
 description: >
   Manage Delightloop contacts, campaigns, and webhook subscriptions from any
   MCP-compatible AI assistant (Claude, Cursor, Windsurf, Continue, Cline, Zed).
-version: 0.1.11
+version: 0.1.12
 license: MIT
 homepage: https://delightloop.ai
 repository: https://github.com/labs-delightloop/mcp-delightloop

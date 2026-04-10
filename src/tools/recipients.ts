@@ -3,6 +3,17 @@ import { dlRequest } from "../client.js";
 
 // ─── Schemas ─────────────────────────────────────────────────────────────────
 
+export const RecipientListSchema = z.object({
+  campaignId: z.string().describe("The ID of the campaign to list recipients for"),
+  returnAll: z.boolean().optional().default(false).describe("If true, fetch all pages automatically"),
+  limit: z.number().min(1).max(500).optional().default(50).describe("Max recipients per page (ignored when returnAll=true)"),
+  page: z.number().min(1).optional().default(1).describe("Page number"),
+  status: z
+    .enum(["ready", "invited", "invite_sent", "claimed", "fulfilled", "expired", "cancelled"])
+    .optional()
+    .describe("Filter by recipient status"),
+});
+
 export const RecipientGetSchema = z.object({
   recipientId: z
     .string()
@@ -77,6 +88,77 @@ export const RecipientTagSchema = z.object({
 });
 
 // ─── Handlers ────────────────────────────────────────────────────────────────
+
+function simplifyRecipient(r: Record<string, unknown>) {
+  const contact = (r.contactDetails as Record<string, unknown>) ?? {};
+  const urls = (r.urls as Record<string, string>) ?? {};
+  return {
+    recipientId: r.recipientId,
+    status: r.status,
+    contactId: r.sourceId,
+    name: contact.fullName ?? `${contact.firstName ?? ""} ${contact.lastName ?? ""}`.trim(),
+    email: contact.email,
+    landingPageUrl: urls.landingPage ?? null,
+    claimPageUrl: urls.claimPage ?? null,
+    tags: r.tags,
+    createdAt: r.createdAt,
+    updatedAt: r.updatedAt,
+  };
+}
+
+/** List recipients for a campaign with optional pagination and status filter */
+export async function recipientList(
+  input: z.infer<typeof RecipientListSchema>,
+  apiKey: string,
+) {
+  const buildQuery = (page: number, limit: number) => {
+    const q: Record<string, string | number | boolean | undefined> = { page, limit };
+    if (input.status) q.status = input.status;
+    return q;
+  };
+
+  if (input.returnAll) {
+    const all: Record<string, unknown>[] = [];
+    let page = 1;
+    while (true) {
+      const res = await dlRequest<Record<string, unknown>>({
+        method: "GET",
+        path: `/api/campaigns/campaigns/${input.campaignId}/recipients`,
+        apiKey,
+        query: buildQuery(page, 500),
+      });
+      const items = (res.recipients as Record<string, unknown>[]) ?? [];
+      all.push(...items);
+      const pagination = (res.pagination as Record<string, unknown>) ?? {};
+      const totalPages = (pagination.totalPages as number) ?? 1;
+      if (page >= totalPages || items.length === 0) break;
+      page++;
+    }
+    return {
+      recipients: all.map(simplifyRecipient),
+      total: all.length,
+      campaignId: input.campaignId,
+    };
+  }
+
+  const res = await dlRequest<Record<string, unknown>>({
+    method: "GET",
+    path: `/api/campaigns/campaigns/${input.campaignId}/recipients`,
+    apiKey,
+    query: buildQuery(input.page ?? 1, input.limit ?? 50),
+  });
+
+  const recipients = (res.recipients as Record<string, unknown>[]) ?? [];
+  const pagination = (res.pagination as Record<string, unknown>) ?? {};
+  return {
+    recipients: recipients.map(simplifyRecipient),
+    total: pagination.total,
+    page: pagination.currentPage,
+    totalPages: pagination.totalPages,
+    statusCounts: res.statusCounts,
+    campaignId: input.campaignId,
+  };
+}
 
 /** Get a single recipient by ID — surfaces landingPageUrl and claimPageUrl at top level */
 export async function recipientGet(

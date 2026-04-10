@@ -19,7 +19,7 @@ import express from "express";
 import { validateApiKey } from "./client.js";
 import { createMcpServer } from "./mcp.js";
 const PORT = process.env.PORT;
-const VERSION = "0.1.11";
+const VERSION = "0.1.12";
 function log(msg) {
     console.error(`[mcp-delightloop] ${msg}`);
 }

@@ -1,6 +1,6 @@
 {
   "name": "mcp-delightloop",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "description": "MCP server for Delightloop — manage contacts, campaigns, and webhooks from any AI assistant",
   "keywords": [
     "mcp",

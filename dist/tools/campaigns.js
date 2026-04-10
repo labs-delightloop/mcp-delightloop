@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { dlRequest, fetchAllPages } from "../client.js";
+import { dlRequest } from "../client.js";
 // ─── Schemas ────────────────────────────────────────────────────────────────
 export const CampaignGetSchema = z.object({
     campaignId: z.string().describe("The ID of the campaign to retrieve"),
@@ -55,35 +55,47 @@ export async function campaignGet(input, apiKey) {
     });
 }
 export async function campaignList(input, apiKey) {
-    if (input.returnAll) {
-        const query = {};
+    const buildQuery = (page, limit) => {
+        const q = { page, limit };
         if (input.status)
-            query.status = input.status;
+            q.status = input.status;
         if (input.search)
-            query.search = input.search;
-        const items = await fetchAllPages(apiKey, "/api/campaigns/campaigns", "campaigns", query);
-        return { campaigns: items.map(simplifyCampaign), total: items.length };
-    }
-    const query = {
-        limit: input.limit,
-        page: input.page,
+            q.search = input.search;
+        return q;
     };
-    if (input.status)
-        query.status = input.status;
-    if (input.search)
-        query.search = input.search;
+    if (input.returnAll) {
+        const all = [];
+        let page = 1;
+        while (true) {
+            const res = await dlRequest({
+                method: "GET",
+                path: "/api/campaigns/campaigns",
+                apiKey,
+                query: buildQuery(page, 500),
+            });
+            const items = res.campaigns ?? [];
+            all.push(...items);
+            const pagination = res.pagination ?? {};
+            const totalPages = pagination.totalPages ?? 1;
+            if (page >= totalPages || items.length === 0)
+                break;
+            page++;
+        }
+        return { campaigns: all.map(simplifyCampaign), total: all.length };
+    }
     const res = await dlRequest({
         method: "GET",
         path: "/api/campaigns/campaigns",
         apiKey,
-        query,
+        query: buildQuery(input.page ?? 1, input.limit ?? 50),
     });
     const campaigns = res.campaigns ?? [];
+    const pagination = res.pagination ?? {};
     return {
         campaigns: campaigns.map(simplifyCampaign),
-        total: res.total,
-        page: res.page,
-        totalPages: res.totalPages,
+        total: pagination.total,
+        page: pagination.currentPage,
+        totalPages: pagination.totalPages,
     };
 }
 export async function campaignAddContacts(input, apiKey) {

@@ -23,10 +23,12 @@ import {
 } from "./tools/campaigns.js";
 
 import {
+  RecipientListSchema,
   RecipientGetSchema,
   CampaignLaunchRecipientsSchema,
   CampaignLaunchAllSchema,
   RecipientTagSchema,
+  recipientList,
   recipientGet,
   campaignLaunchRecipients,
   campaignLaunchAll,
@@ -92,7 +94,7 @@ function wrap<T>(fn: () => Promise<T>) {
 export function createMcpServer(apiKey: string): McpServer {
   const server = new McpServer({
     name: "mcp-delightloop",
-    version: "0.1.11",
+    version: "0.1.12",
   });
 
   // ── Contacts ───────────────────────────────────────────────────────────────
@@ -132,6 +134,13 @@ export function createMcpServer(apiKey: string): McpServer {
   );
 
   // ── Recipients ────────────────────────────────────────────────────────────
+  server.tool(
+    "recipient_list",
+    "List recipients for a campaign. Filter by status (ready, invited, invite_sent, claimed, fulfilled, expired, cancelled). Use returnAll:true to fetch all pages automatically.",
+    RecipientListSchema.shape,
+    (input) => wrap(() => recipientList(input, apiKey)),
+  );
+
   server.tool(
     "recipient_get",
     "Get a recipient by ID, including their status, contact details, selected gift, shipment info, and — importantly — the landingPageUrl and claimPageUrl they were sent.",

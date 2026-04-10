@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { dlRequest, fetchAllPages } from "../client.js";
+import { dlRequest } from "../client.js";
 
 // ─── Schemas ────────────────────────────────────────────────────────────────
 
@@ -70,40 +70,47 @@ export async function campaignList(
   input: z.infer<typeof CampaignListSchema>,
   apiKey: string,
 ) {
-  if (input.returnAll) {
-    const query: Record<string, string | number | boolean | undefined> = {};
-    if (input.status) query.status = input.status;
-    if (input.search) query.search = input.search;
-
-    const items = await fetchAllPages<Record<string, unknown>>(
-      apiKey,
-      "/api/campaigns/campaigns",
-      "campaigns",
-      query,
-    );
-    return { campaigns: items.map(simplifyCampaign), total: items.length };
-  }
-
-  const query: Record<string, string | number | boolean | undefined> = {
-    limit: input.limit,
-    page: input.page,
+  const buildQuery = (page: number, limit: number) => {
+    const q: Record<string, string | number | boolean | undefined> = { page, limit };
+    if (input.status) q.status = input.status;
+    if (input.search) q.search = input.search;
+    return q;
   };
-  if (input.status) query.status = input.status;
-  if (input.search) query.search = input.search;
+
+  if (input.returnAll) {
+    const all: Record<string, unknown>[] = [];
+    let page = 1;
+    while (true) {
+      const res = await dlRequest<Record<string, unknown>>({
+        method: "GET",
+        path: "/api/campaigns/campaigns",
+        apiKey,
+        query: buildQuery(page, 500),
+      });
+      const items = (res.campaigns as Record<string, unknown>[]) ?? [];
+      all.push(...items);
+      const pagination = (res.pagination as Record<string, unknown>) ?? {};
+      const totalPages = (pagination.totalPages as number) ?? 1;
+      if (page >= totalPages || items.length === 0) break;
+      page++;
+    }
+    return { campaigns: all.map(simplifyCampaign), total: all.length };
+  }
 
   const res = await dlRequest<Record<string, unknown>>({
     method: "GET",
     path: "/api/campaigns/campaigns",
     apiKey,
-    query,
+    query: buildQuery(input.page ?? 1, input.limit ?? 50),
   });
 
   const campaigns = (res.campaigns as Record<string, unknown>[]) ?? [];
+  const pagination = (res.pagination as Record<string, unknown>) ?? {};
   return {
     campaigns: campaigns.map(simplifyCampaign),
-    total: res.total,
-    page: res.page,
-    totalPages: res.totalPages,
+    total: pagination.total,
+    page: pagination.currentPage,
+    totalPages: pagination.totalPages,
   };
 }
 
