@@ -21,7 +21,7 @@ import { validateApiKey } from "./client.js";
 import { createMcpServer } from "./mcp.js";
 
 const PORT = process.env.PORT;
-const VERSION = "0.1.7";
+const VERSION = "0.1.9";
 
 function log(msg: string) {
   console.error(`[mcp-delightloop] ${msg}`);
@@ -145,6 +145,41 @@ if (PORT) {
   // Health check
   app.get("/health", (_req, res) => {
     res.json({ status: "ok", server: "mcp-delightloop", version: VERSION, uptime: Math.floor(process.uptime()) });
+  });
+
+  // ── OAuth discovery endpoints ───────────────────────────────────────────────
+  // New MCP clients (Smithery, Claude.ai) probe these to understand auth method.
+  // We declare ourselves as a resource server that uses API key auth (no OAuth).
+  const RESOURCE_URL = process.env.FQDN
+    ? `https://${process.env.FQDN}`
+    : "https://mcp.delightloop.vip";
+
+  // RFC 8707 — Resource Server metadata: declares API-key-only auth, no OAuth
+  app.get("/.well-known/oauth-protected-resource", (_req, res) => {
+    res.json({
+      resource: RESOURCE_URL,
+      bearer_methods_supported: ["query", "header"],
+      resource_documentation: "https://www.npmjs.com/package/mcp-delightloop",
+    });
+  });
+
+  // Handle sub-path variants (e.g. /.well-known/oauth-protected-resource/sse)
+  app.get("/.well-known/oauth-protected-resource/*", (_req, res) => {
+    res.json({
+      resource: RESOURCE_URL,
+      bearer_methods_supported: ["query", "header"],
+      resource_documentation: "https://www.npmjs.com/package/mcp-delightloop",
+    });
+  });
+
+  // No OAuth authorization server — return 404 so clients skip OAuth flow
+  app.get("/.well-known/oauth-authorization-server", (_req, res) => {
+    res.status(404).json({ error: "This server uses API key auth. Pass ?apiKey=YOUR_KEY — no OAuth required." });
+  });
+
+  // No dynamic client registration
+  app.post("/register", (_req, res) => {
+    res.status(404).json({ error: "Dynamic client registration not supported. Use API key auth." });
   });
 
   // ── StreamableHTTP — /mcp (standard new endpoint) ──────────────────────────
