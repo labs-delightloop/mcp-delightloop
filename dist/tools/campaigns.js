@@ -71,7 +71,7 @@ export async function campaignList(input, apiKey) {
                 method: "GET",
                 path: "/api/campaigns/campaigns",
                 apiKey,
-                query: buildQuery(page, 500),
+                query: buildQuery(page, 100),
             });
             const items = res.campaigns ?? [];
             all.push(...items);

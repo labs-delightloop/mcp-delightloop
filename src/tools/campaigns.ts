@@ -85,7 +85,7 @@ export async function campaignList(
         method: "GET",
         path: "/api/campaigns/campaigns",
         apiKey,
-        query: buildQuery(page, 500),
+        query: buildQuery(page, 100),
       });
       const items = (res.campaigns as Record<string, unknown>[]) ?? [];
       all.push(...items);
