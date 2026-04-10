@@ -30,7 +30,7 @@ function wrap(fn) {
 export function createMcpServer(apiKey) {
     const server = new McpServer({
         name: "mcp-delightloop",
-        version: "0.1.9",
+        version: "0.1.10",
     });
     // ── Contacts ───────────────────────────────────────────────────────────────
     server.tool("contact_create", "Create a new contact in Delightloop", ContactCreateSchema.shape, (input) => wrap(() => contactCreate(input, apiKey)));

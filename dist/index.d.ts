@@ -4,11 +4,12 @@
  *
  * Runs in two modes:
  *  - stdio  (local): set DELIGHTLOOP_API_KEY env var, no PORT
- *  - HTTP   (remote / Smithery): set PORT, API key passed per-connection via ?apiKey=
+ *  - HTTP   (remote): set PORT
  *
- * HTTP supports both transports:
- *  - StreamableHTTP (new): POST /mcp or POST /sse  — used by Smithery, Claude.ai, newer clients
- *  - SSE (legacy):         GET /sse + POST /message — used by older clients
+ * HTTP supports:
+ *  - OAuth 2.0 Authorization Code flow (Claude.ai web, new MCP clients)
+ *  - StreamableHTTP: POST /mcp or POST /sse
+ *  - SSE legacy:     GET /sse + POST /message
  */
 export {};
 //# sourceMappingURL=index.d.ts.map
