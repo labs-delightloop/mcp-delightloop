@@ -10,7 +10,9 @@ RUN npm install -g pnpm && pnpm install --frozen-lockfile --prod=false
 
 COPY . .
 
-RUN pnpm build
+# Server-only build. UI bundles in ui/dist/ are pre-built and committed
+# (they depend on the sibling untitled-ui repo which is not in this Docker context).
+RUN pnpm run build:server
 
 EXPOSE 3000
 
