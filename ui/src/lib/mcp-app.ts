@@ -8,36 +8,51 @@ const app = new App({
 let connected: Promise<void> | null = null;
 let darkModeInitialized = false;
 
-function initDarkMode(): void {
+function applyDarkMode(dark: boolean): void {
+  const root = document.documentElement;
+  if (dark) {
+    root.classList.add('dark-mode');
+    root.classList.remove('light-mode');
+  } else {
+    root.classList.add('light-mode');
+    root.classList.remove('dark-mode');
+  }
+}
+
+function initDarkModeFallback(): void {
   if (darkModeInitialized || typeof window === 'undefined') return;
   darkModeInitialized = true;
   const mq = window.matchMedia('(prefers-color-scheme: dark)');
-  const apply = (dark: boolean) => {
-    const root = document.documentElement;
-    if (dark) {
-      root.classList.add('dark-mode');
-      root.classList.remove('light-mode');
-    } else {
-      root.classList.add('light-mode');
-      root.classList.remove('dark-mode');
-    }
-  };
-  apply(mq.matches);
-  mq.addEventListener('change', (e) => apply(e.matches));
+  applyDarkMode(mq.matches);
+  mq.addEventListener('change', (e) => applyDarkMode(e.matches));
+}
+
+function syncThemeFromHost(a: App): void {
+  // Prefer the host-supplied theme over OS preference once the SDK is ready.
+  const ctx = (a as unknown as { getHostContext?: () => { theme?: string } | null })
+    .getHostContext?.();
+  if (ctx?.theme === 'dark' || ctx?.theme === 'light') {
+    darkModeInitialized = true;
+    applyDarkMode(ctx.theme === 'dark');
+  }
+}
+
+async function connectInternal(): Promise<void> {
+  initDarkModeFallback();
+  await app.connect();
+  syncThemeFromHost(app);
 }
 
 export function getApp(): App {
   if (!connected) {
-    initDarkMode();
-    connected = app.connect();
+    connected = connectInternal();
   }
   return app;
 }
 
 export async function ready(): Promise<App> {
   if (!connected) {
-    initDarkMode();
-    connected = app.connect();
+    connected = connectInternal();
   }
   await connected;
   return app;

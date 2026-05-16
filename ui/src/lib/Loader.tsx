@@ -44,7 +44,7 @@ export function Loader({ size = 48, className = '', label }: LoaderProps) {
 
 export function FullPageLoader({ label }: { label?: string }) {
   return (
-    <div className="flex min-h-[50vh] items-center justify-center">
+    <div className="flex min-h-[320px] items-center justify-center py-12">
       <Loader size={64} label={label} />
     </div>
   );
