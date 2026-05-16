@@ -12,8 +12,8 @@ export declare const EventListSchema: z.ZodObject<{
 }, {
     page?: number | undefined;
     limit?: number | undefined;
-    search?: string | undefined;
     returnAll?: boolean | undefined;
+    search?: string | undefined;
 }>;
 export declare const EventGetSchema: z.ZodObject<{
     eventId: z.ZodString;
@@ -35,28 +35,28 @@ export declare const EventCreateSchema: z.ZodObject<{
     banner: z.ZodOptional<z.ZodString>;
     status: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    name: string;
     type: string;
+    name: string;
     startDate: string;
-    description?: string | undefined;
     status?: string | undefined;
     address?: string | undefined;
     endDate?: string | undefined;
     locationType?: "physical" | "online" | "hybrid" | undefined;
     venueName?: string | undefined;
     onlineUrl?: string | undefined;
+    description?: string | undefined;
     banner?: string | undefined;
 }, {
-    name: string;
     type: string;
+    name: string;
     startDate: string;
-    description?: string | undefined;
     status?: string | undefined;
     address?: string | undefined;
     endDate?: string | undefined;
     locationType?: "physical" | "online" | "hybrid" | undefined;
     venueName?: string | undefined;
     onlineUrl?: string | undefined;
+    description?: string | undefined;
     banner?: string | undefined;
 }>;
 export declare function eventList(input: z.infer<typeof EventListSchema>, apiKey: string): Promise<{
