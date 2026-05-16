@@ -16,14 +16,14 @@ export declare const CampaignListSchema: z.ZodObject<{
     page: number;
     limit: number;
     returnAll: boolean;
-    status?: "" | "draft" | "live" | "paused" | "preparing" | "completed" | undefined;
     search?: string | undefined;
+    status?: "" | "draft" | "live" | "paused" | "preparing" | "completed" | undefined;
 }, {
     page?: number | undefined;
     limit?: number | undefined;
+    search?: string | undefined;
     status?: "" | "draft" | "live" | "paused" | "preparing" | "completed" | undefined;
     returnAll?: boolean | undefined;
-    search?: string | undefined;
 }>;
 export declare const CampaignAddContactsSchema: z.ZodObject<{
     campaignId: z.ZodString;

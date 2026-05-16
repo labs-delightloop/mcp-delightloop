@@ -109,8 +109,8 @@ export declare const ContactListSchema: z.ZodObject<{
 }, {
     page?: number | undefined;
     limit?: number | undefined;
-    returnAll?: boolean | undefined;
     search?: string | undefined;
+    returnAll?: boolean | undefined;
 }>;
 export declare const ContactUpdateSchema: z.ZodObject<{
     contactId: z.ZodString;
