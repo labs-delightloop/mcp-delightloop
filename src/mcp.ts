@@ -1,4 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { registerAppTool } from "@modelcontextprotocol/ext-apps/server";
+import { registerUiResources, UI_RESOURCES } from "./ui-resources.js";
 
 import {
   ContactCreateSchema,
@@ -97,6 +99,9 @@ export function createMcpServer(apiKey: string): McpServer {
     version: "0.1.12",
   });
 
+  // ── UI resources (MCP Apps extension) ──────────────────────────────────────
+  registerUiResources(server);
+
   // ── Contacts ───────────────────────────────────────────────────────────────
   server.tool(
     "contact_create",
@@ -112,17 +117,31 @@ export function createMcpServer(apiKey: string): McpServer {
     (input) => wrap(() => contactBulkCreate(input, apiKey)),
   );
 
-  server.tool(
+  // contact_get surfaces a rich Contact Card UI in MCP Apps hosts.
+  registerAppTool(
+    server,
     "contact_get",
-    "Retrieve a single contact by ID from Delightloop",
-    ContactGetSchema.shape,
+    {
+      title: "Contact Card",
+      description:
+        "Retrieve a single contact by ID. In MCP Apps hosts (Claude Desktop / Connector) this surfaces a rich Contact Card UI with profile, fields, and tags.",
+      inputSchema: ContactGetSchema.shape,
+      _meta: { ui: { resourceUri: UI_RESOURCES.contactCard } },
+    },
     (input) => wrap(() => contactGet(input, apiKey)),
   );
 
-  server.tool(
+  // contact_list surfaces a rich Contact List UI in MCP Apps hosts.
+  registerAppTool(
+    server,
     "contact_list",
-    "List contacts in Delightloop with optional search and pagination",
-    ContactListSchema.shape,
+    {
+      title: "Contacts",
+      description:
+        "List contacts in Delightloop with optional search and pagination. In MCP Apps hosts this surfaces a searchable, paginated Contact List UI.",
+      inputSchema: ContactListSchema.shape,
+      _meta: { ui: { resourceUri: UI_RESOURCES.contactList } },
+    },
     (input) => wrap(() => contactList(input, apiKey)),
   );
 
@@ -134,10 +153,18 @@ export function createMcpServer(apiKey: string): McpServer {
   );
 
   // ── Recipients ────────────────────────────────────────────────────────────
-  server.tool(
+  // recipient_list surfaces an interactive Recipients UI with status filter, selection,
+  // and bulk Launch action (via campaign_launch_recipients) in MCP Apps hosts.
+  registerAppTool(
+    server,
     "recipient_list",
-    "List recipients for a campaign. Filter by status (ready, invited, invite_sent, claimed, fulfilled, expired, cancelled). Use returnAll:true to fetch all pages automatically.",
-    RecipientListSchema.shape,
+    {
+      title: "Recipients",
+      description:
+        "List recipients for a campaign. Filter by status, paginate, and launch selected 'ready' recipients. In MCP Apps hosts this surfaces an interactive Recipients UI.",
+      inputSchema: RecipientListSchema.shape,
+      _meta: { ui: { resourceUri: UI_RESOURCES.recipientList } },
+    },
     (input) => wrap(() => recipientList(input, apiKey)),
   );
 
@@ -215,17 +242,32 @@ export function createMcpServer(apiKey: string): McpServer {
   );
 
   // ── Campaigns ──────────────────────────────────────────────────────────────
-  server.tool(
+  // campaign_get uses MCP Apps (ext-apps) so Claude Desktop / Connector renders
+  // the rich Campaign Details UI bundled at mcp-delightloop/ui/dist/campaign-details/.
+  registerAppTool(
+    server,
     "campaign_get",
-    "Retrieve a single campaign by ID from Delightloop",
-    CampaignGetSchema.shape,
+    {
+      title: "Campaign Details",
+      description:
+        "Retrieve a single campaign by ID from Delightloop. In MCP Apps hosts (Claude Desktop / Connector) this surfaces a rich Campaign Details UI — header, status cards, recipients table.",
+      inputSchema: CampaignGetSchema.shape,
+      _meta: { ui: { resourceUri: UI_RESOURCES.campaignDetails } },
+    },
     (input) => wrap(() => campaignGet(input, apiKey)),
   );
 
-  server.tool(
+  // campaign_list surfaces a rich Campaigns grid UI in MCP Apps hosts.
+  registerAppTool(
+    server,
     "campaign_list",
-    "List campaigns in Delightloop. Filter by status (draft, live, paused, preparing, completed) or search by name.",
-    CampaignListSchema.shape,
+    {
+      title: "Campaigns",
+      description:
+        "List campaigns in Delightloop. Filter by status (draft, live, paused, preparing, completed) or search by name. In MCP Apps hosts this surfaces a Campaigns grid UI.",
+      inputSchema: CampaignListSchema.shape,
+      _meta: { ui: { resourceUri: UI_RESOURCES.campaignList } },
+    },
     (input) => wrap(() => campaignList(input, apiKey)),
   );
 

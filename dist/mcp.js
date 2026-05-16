@@ -1,4 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { registerAppTool } from "@modelcontextprotocol/ext-apps/server";
+import { registerUiResources, UI_RESOURCES } from "./ui-resources.js";
 import { ContactCreateSchema, ContactBulkCreateSchema, ContactGetSchema, ContactListSchema, ContactUpdateSchema, contactCreate, contactBulkCreate, contactGet, contactList, contactUpdate, } from "./tools/contacts.js";
 import { CampaignGetSchema, CampaignListSchema, CampaignAddContactsSchema, campaignGet, campaignList, campaignAddContacts, } from "./tools/campaigns.js";
 import { RecipientListSchema, RecipientGetSchema, CampaignLaunchRecipientsSchema, CampaignLaunchAllSchema, RecipientTagSchema, recipientList, recipientGet, campaignLaunchRecipients, campaignLaunchAll, recipientTag, } from "./tools/recipients.js";
@@ -32,14 +34,35 @@ export function createMcpServer(apiKey) {
         name: "mcp-delightloop",
         version: "0.1.12",
     });
+    // ── UI resources (MCP Apps extension) ──────────────────────────────────────
+    registerUiResources(server);
     // ── Contacts ───────────────────────────────────────────────────────────────
     server.tool("contact_create", "Create a new contact in Delightloop", ContactCreateSchema.shape, (input) => wrap(() => contactCreate(input, apiKey)));
     server.tool("contact_bulk_create", "Create multiple contacts at once in Delightloop", ContactBulkCreateSchema.shape, (input) => wrap(() => contactBulkCreate(input, apiKey)));
-    server.tool("contact_get", "Retrieve a single contact by ID from Delightloop", ContactGetSchema.shape, (input) => wrap(() => contactGet(input, apiKey)));
-    server.tool("contact_list", "List contacts in Delightloop with optional search and pagination", ContactListSchema.shape, (input) => wrap(() => contactList(input, apiKey)));
+    // contact_get surfaces a rich Contact Card UI in MCP Apps hosts.
+    registerAppTool(server, "contact_get", {
+        title: "Contact Card",
+        description: "Retrieve a single contact by ID. In MCP Apps hosts (Claude Desktop / Connector) this surfaces a rich Contact Card UI with profile, fields, and tags.",
+        inputSchema: ContactGetSchema.shape,
+        _meta: { ui: { resourceUri: UI_RESOURCES.contactCard } },
+    }, (input) => wrap(() => contactGet(input, apiKey)));
+    // contact_list surfaces a rich Contact List UI in MCP Apps hosts.
+    registerAppTool(server, "contact_list", {
+        title: "Contacts",
+        description: "List contacts in Delightloop with optional search and pagination. In MCP Apps hosts this surfaces a searchable, paginated Contact List UI.",
+        inputSchema: ContactListSchema.shape,
+        _meta: { ui: { resourceUri: UI_RESOURCES.contactList } },
+    }, (input) => wrap(() => contactList(input, apiKey)));
     server.tool("contact_update", "Update an existing contact in Delightloop", ContactUpdateSchema.shape, (input) => wrap(() => contactUpdate(input, apiKey)));
     // ── Recipients ────────────────────────────────────────────────────────────
-    server.tool("recipient_list", "List recipients for a campaign. Filter by status (ready, invited, invite_sent, claimed, fulfilled, expired, cancelled). Use returnAll:true to fetch all pages automatically.", RecipientListSchema.shape, (input) => wrap(() => recipientList(input, apiKey)));
+    // recipient_list surfaces an interactive Recipients UI with status filter, selection,
+    // and bulk Launch action (via campaign_launch_recipients) in MCP Apps hosts.
+    registerAppTool(server, "recipient_list", {
+        title: "Recipients",
+        description: "List recipients for a campaign. Filter by status, paginate, and launch selected 'ready' recipients. In MCP Apps hosts this surfaces an interactive Recipients UI.",
+        inputSchema: RecipientListSchema.shape,
+        _meta: { ui: { resourceUri: UI_RESOURCES.recipientList } },
+    }, (input) => wrap(() => recipientList(input, apiKey)));
     server.tool("recipient_get", "Get a recipient by ID, including their status, contact details, selected gift, shipment info, and — importantly — the landingPageUrl and claimPageUrl they were sent.", RecipientGetSchema.shape, (input) => wrap(() => recipientGet(input, apiKey)));
     server.tool("campaign_launch_recipients", "Launch specific recipients in a campaign. Use when a recipient's status is 'ready' — this activates their landing page and claim page URLs, creates dynamic video content, and sends the invitation email. After launch, status changes to 'invite_sent' (if email configured) or 'invited'.", CampaignLaunchRecipientsSchema.shape, (input) => wrap(() => campaignLaunchRecipients(input, apiKey)));
     server.tool("campaign_launch_all", "Launch ALL recipients in 'ready' status for a campaign in one shot. This makes the entire campaign go live — activates landing/claim pages, creates video content, and sends invitation emails to everyone. To launch only specific recipients, use campaign_launch_recipients instead.", CampaignLaunchAllSchema.shape, (input) => wrap(() => campaignLaunchAll(input, apiKey)));
@@ -54,8 +77,21 @@ export function createMcpServer(apiKey) {
     server.tool("email_send", "Send a single personalized email via Delightloop. Provide recipient, subject, HTML body, and plain-text body. The sender address is auto-generated from your organization name if not specified.", EmailSendSchema.shape, (input) => wrap(() => emailSend(input, apiKey)));
     server.tool("email_bulk_send", "Send multiple personalized emails in one call. Each email in the array can have its own recipient, subject, and content. Ideal for outreach campaigns or bulk notifications.", EmailBulkSendSchema.shape, (input) => wrap(() => emailBulkSend(input, apiKey)));
     // ── Campaigns ──────────────────────────────────────────────────────────────
-    server.tool("campaign_get", "Retrieve a single campaign by ID from Delightloop", CampaignGetSchema.shape, (input) => wrap(() => campaignGet(input, apiKey)));
-    server.tool("campaign_list", "List campaigns in Delightloop. Filter by status (draft, live, paused, preparing, completed) or search by name.", CampaignListSchema.shape, (input) => wrap(() => campaignList(input, apiKey)));
+    // campaign_get uses MCP Apps (ext-apps) so Claude Desktop / Connector renders
+    // the rich Campaign Details UI bundled at mcp-delightloop/ui/dist/campaign-details/.
+    registerAppTool(server, "campaign_get", {
+        title: "Campaign Details",
+        description: "Retrieve a single campaign by ID from Delightloop. In MCP Apps hosts (Claude Desktop / Connector) this surfaces a rich Campaign Details UI — header, status cards, recipients table.",
+        inputSchema: CampaignGetSchema.shape,
+        _meta: { ui: { resourceUri: UI_RESOURCES.campaignDetails } },
+    }, (input) => wrap(() => campaignGet(input, apiKey)));
+    // campaign_list surfaces a rich Campaigns grid UI in MCP Apps hosts.
+    registerAppTool(server, "campaign_list", {
+        title: "Campaigns",
+        description: "List campaigns in Delightloop. Filter by status (draft, live, paused, preparing, completed) or search by name. In MCP Apps hosts this surfaces a Campaigns grid UI.",
+        inputSchema: CampaignListSchema.shape,
+        _meta: { ui: { resourceUri: UI_RESOURCES.campaignList } },
+    }, (input) => wrap(() => campaignList(input, apiKey)));
     server.tool("campaign_add_contacts", "Add one or more contacts to a live Delightloop campaign", CampaignAddContactsSchema.shape, (input) => wrap(() => campaignAddContacts(input, apiKey)));
     // ── Webhooks ───────────────────────────────────────────────────────────────
     server.tool("webhook_create", "Create a webhook subscription in Delightloop. Events: campaign.created, campaign.updated, campaign.status_changed, campaign.deleted, campaign.recipients_added, recipient.created, recipient.status_changed, recipient.email_sent, recipient.feedback_submitted", WebhookCreateSchema.shape, (input) => wrap(() => webhookCreate(input, apiKey)));

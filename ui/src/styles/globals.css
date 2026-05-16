@@ -1,0 +1,11 @@
+@import 'tailwindcss';
+@import '../../../../untitled-ui/src/styles/theme.css';
+@import '../../../../untitled-ui/src/styles/typography.css';
+
+html,
+body,
+#root {
+  height: 100%;
+  background: var(--color-bg-primary, #fff);
+  font-family: var(--font-body);
+}

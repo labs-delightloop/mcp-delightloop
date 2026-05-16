@@ -6,8 +6,8 @@ export declare const WebhookCreateSchema: z.ZodObject<{
     url: z.ZodString;
     events: z.ZodArray<z.ZodEnum<["campaign.created", "campaign.updated", "campaign.status_changed", "campaign.deleted", "campaign.recipients_added", "recipient.created", "recipient.status_changed", "recipient.email_sent", "recipient.feedback_submitted"]>, "many">;
 }, "strip", z.ZodTypeAny, {
-    name: string;
     url: string;
+    name: string;
     events: ("campaign.created" | "campaign.updated" | "campaign.status_changed" | "campaign.deleted" | "campaign.recipients_added" | "recipient.created" | "recipient.status_changed" | "recipient.email_sent" | "recipient.feedback_submitted")[];
 }, {
     url: string;
