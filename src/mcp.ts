@@ -76,6 +76,15 @@ import {
   recipientTimelineGet,
 } from "./tools/metrics.js";
 
+import {
+  EventListSchema,
+  EventGetSchema,
+  EventCreateSchema,
+  eventList,
+  eventGet,
+  eventCreate,
+} from "./tools/events.js";
+
 // ─── Helper ──────────────────────────────────────────────────────────────────
 
 function wrap<T>(fn: () => Promise<T>) {
@@ -297,6 +306,28 @@ export function createMcpServer(apiKey: string): McpServer {
     "Get the activity timeline for a recipient — emails sent, opens, clicks, gift events, feedback. Returns an array of timeline events sorted chronologically.",
     RecipientTimelineGetSchema.shape,
     (input) => wrap(() => recipientTimelineGet(input, apiKey)),
+  );
+
+  // ── Events ────────────────────────────────────────────────────────────────
+  server.tool(
+    "event_list",
+    "List events in Delightloop. Filter by search query. Each event has type (conference/webinar/etc), dates, and location.",
+    EventListSchema.shape,
+    (input) => wrap(() => eventList(input, apiKey)),
+  );
+
+  server.tool(
+    "event_get",
+    "Retrieve a single event by ID — returns name, type, dates, location (physical/online/hybrid + venue/address), description, banner.",
+    EventGetSchema.shape,
+    (input) => wrap(() => eventGet(input, apiKey)),
+  );
+
+  server.tool(
+    "event_create",
+    "Create a new event in Delightloop. Required: name, type, startDate. Optional: endDate, locationType ('physical'|'online'|'hybrid'), venueName, address, onlineUrl, description, banner URL, status.",
+    EventCreateSchema.shape,
+    (input) => wrap(() => eventCreate(input, apiKey)),
   );
 
   // ── Webhooks ───────────────────────────────────────────────────────────────

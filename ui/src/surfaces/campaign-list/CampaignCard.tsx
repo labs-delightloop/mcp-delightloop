@@ -1,8 +1,9 @@
+// TODO: campaign_metrics_bulk_get tool for fewer round-trips
+import { useEffect, useState } from 'react';
 import { Card } from '@/components/application/cards/card';
+import { callTool } from '../../lib/mcp-app';
 import { StatusPill } from '../campaign-details/StatusPill';
-import type { CampaignListItem } from './types';
-
-// TODO: needs campaign_metrics_get tool for recipient counts + progress bar + status breakdown.
+import type { CampaignListItem, CampaignMetrics } from './types';
 
 interface CampaignCardProps {
   campaign: CampaignListItem;
@@ -37,11 +38,25 @@ function TagChip({ children }: { children: React.ReactNode }) {
   );
 }
 
-function MetricCell({ label, value }: { label: string; value: React.ReactNode }) {
+function MetricCell({
+  label,
+  value,
+  loading,
+}: {
+  label: string;
+  value: React.ReactNode;
+  loading?: boolean;
+}) {
   return (
     <div className="flex flex-col gap-0.5 min-w-0">
       <span className="text-xs text-tertiary truncate">{label}</span>
-      <span className="text-sm font-medium text-primary truncate">{value}</span>
+      <span
+        className={`text-sm font-medium text-primary truncate ${
+          loading ? 'animate-pulse rounded bg-secondary/60 text-transparent' : ''
+        }`}
+      >
+        {value}
+      </span>
     </div>
   );
 }
@@ -49,6 +64,57 @@ function MetricCell({ label, value }: { label: string; value: React.ReactNode })
 export function CampaignCard({ campaign, onOpen }: CampaignCardProps) {
   const goal = campaign.goal?.trim();
   const motion = campaign.motion?.trim();
+
+  const [metrics, setMetrics] = useState<CampaignMetrics | null>(null);
+  const [loadingMetrics, setLoadingMetrics] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoadingMetrics(true);
+    callTool<CampaignMetrics>('campaign_metrics_get', {
+      campaignId: campaign.campaignId,
+    })
+      .then((data) => {
+        if (cancelled) return;
+        setMetrics(data ?? null);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.warn(
+          `campaign_metrics_get failed for ${campaign.campaignId}:`,
+          err,
+        );
+        setMetrics(null);
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setLoadingMetrics(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [campaign.campaignId]);
+
+  const totalRecipients = metrics?.totalRecipients;
+  const totalDelivered = metrics?.totalDelivered ?? 0;
+  const acknowledged = metrics?.acknowledged ?? 0;
+  const pendingConfirmation = metrics?.pendingConfirmation;
+  const totalGiftsSent = metrics?.totalGiftsSent ?? 0;
+
+  const progressPct =
+    totalRecipients && totalRecipients > 0
+      ? Math.max(
+          0,
+          Math.min(100, ((totalDelivered + acknowledged) / totalRecipients) * 100),
+        )
+      : 0;
+
+  const pendingDisplay = pendingConfirmation ?? '—';
+  const transitDisplay =
+    typeof totalGiftsSent === 'number' && typeof totalDelivered === 'number'
+      ? Math.max(0, totalGiftsSent - totalDelivered)
+      : '—';
+  const deliveredDisplay = metrics?.totalDelivered ?? '—';
 
   return (
     <Card.Root
@@ -73,8 +139,16 @@ export function CampaignCard({ campaign, onOpen }: CampaignCardProps) {
       )}
 
       <div className="grid grid-cols-3 gap-3">
-        <MetricCell label="Recipients" value="—" />
-        <MetricCell label="Highlight" value="—" />
+        <MetricCell
+          label="Recipients"
+          value={totalRecipients ?? '—'}
+          loading={loadingMetrics}
+        />
+        <MetricCell
+          label="Pending"
+          value={pendingDisplay}
+          loading={loadingMetrics}
+        />
         <MetricCell label="Created" value={relativeTime(campaign.createdAt)} />
       </div>
 
@@ -82,34 +156,34 @@ export function CampaignCard({ campaign, onOpen }: CampaignCardProps) {
         <span className="text-xs font-medium text-tertiary">Status</span>
         <div className="h-2 w-full rounded-full bg-secondary/60 overflow-hidden">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-utility-purple-400 to-utility-purple-600"
-            style={{ width: '0%' }}
+            className="h-full rounded-full bg-gradient-to-r from-utility-purple-400 to-utility-purple-600 transition-[width] duration-500"
+            style={{ width: `${progressPct}%` }}
           />
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-tertiary">
           <span className="inline-flex items-center gap-1">
             <span className="h-1.5 w-1.5 rounded-full bg-utility-gray-400" />
-            Pending (—)
+            Pending ({pendingDisplay})
           </span>
           <span className="inline-flex items-center gap-1">
             <span className="h-1.5 w-1.5 rounded-full bg-utility-purple-500" />
-            Transit (—)
+            Transit ({transitDisplay})
           </span>
           <span className="inline-flex items-center gap-1">
             <span className="h-1.5 w-1.5 rounded-full bg-utility-success-500" />
-            Delivered (—)
+            Delivered ({deliveredDisplay})
           </span>
         </div>
       </div>
 
       <div className="flex items-center justify-between text-xs text-tertiary">
         <span>Updated {relativeTime(campaign.updatedAt)}</span>
-        <span>—</span>
+        <span>{`${Math.round(progressPct)}%`}</span>
       </div>
       <div className="h-1 w-full rounded-full bg-secondary/60 overflow-hidden">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-utility-purple-400 to-utility-purple-600"
-          style={{ width: '0%' }}
+          className="h-full rounded-full bg-gradient-to-r from-utility-purple-400 to-utility-purple-600 transition-[width] duration-500"
+          style={{ width: `${progressPct}%` }}
         />
       </div>
     </Card.Root>

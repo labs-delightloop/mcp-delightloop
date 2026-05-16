@@ -22,3 +22,14 @@ export interface CampaignListResult {
   page?: number;
   totalPages?: number;
 }
+
+export interface CampaignMetrics {
+  totalRecipients?: number;
+  totalGiftsSent?: number;
+  totalDelivered?: number;
+  totalFeedback?: number;
+  draftCount?: number;
+  pendingConfirmation?: number;
+  acknowledged?: number;
+  [key: string]: number | undefined;
+}

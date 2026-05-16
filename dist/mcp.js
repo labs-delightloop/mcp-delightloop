@@ -9,6 +9,7 @@ import { GiftListSchema, GiftGetSchema, giftList, giftGet, } from "./tools/gifts
 import { EmailSendSchema, EmailBulkSendSchema, emailSend, emailBulkSend, } from "./tools/email.js";
 import { WebhookCreateSchema, WebhookGetSchema, WebhookListSchema, WebhookDeleteSchema, webhookCreate, webhookGet, webhookList, webhookDelete, } from "./tools/webhooks.js";
 import { CampaignMetricsGetSchema, RecipientTimelineGetSchema, campaignMetricsGet, recipientTimelineGet, } from "./tools/metrics.js";
+import { EventListSchema, EventGetSchema, EventCreateSchema, eventList, eventGet, eventCreate, } from "./tools/events.js";
 // ─── Helper ──────────────────────────────────────────────────────────────────
 function wrap(fn) {
     return fn()
@@ -96,6 +97,10 @@ export function createMcpServer(apiKey) {
     server.tool("campaign_add_contacts", "Add one or more contacts to a live Delightloop campaign", CampaignAddContactsSchema.shape, (input) => wrap(() => campaignAddContacts(input, apiKey)));
     server.tool("campaign_metrics_get", "Get aggregate metrics for a campaign: totalRecipients, totalGiftsSent, totalDelivered, totalFeedback, draftCount, pendingConfirmation. Use this to populate StatusCards.", CampaignMetricsGetSchema.shape, (input) => wrap(() => campaignMetricsGet(input, apiKey)));
     server.tool("recipient_timeline_get", "Get the activity timeline for a recipient — emails sent, opens, clicks, gift events, feedback. Returns an array of timeline events sorted chronologically.", RecipientTimelineGetSchema.shape, (input) => wrap(() => recipientTimelineGet(input, apiKey)));
+    // ── Events ────────────────────────────────────────────────────────────────
+    server.tool("event_list", "List events in Delightloop. Filter by search query. Each event has type (conference/webinar/etc), dates, and location.", EventListSchema.shape, (input) => wrap(() => eventList(input, apiKey)));
+    server.tool("event_get", "Retrieve a single event by ID — returns name, type, dates, location (physical/online/hybrid + venue/address), description, banner.", EventGetSchema.shape, (input) => wrap(() => eventGet(input, apiKey)));
+    server.tool("event_create", "Create a new event in Delightloop. Required: name, type, startDate. Optional: endDate, locationType ('physical'|'online'|'hybrid'), venueName, address, onlineUrl, description, banner URL, status.", EventCreateSchema.shape, (input) => wrap(() => eventCreate(input, apiKey)));
     // ── Webhooks ───────────────────────────────────────────────────────────────
     server.tool("webhook_create", "Create a webhook subscription in Delightloop. Events: campaign.created, campaign.updated, campaign.status_changed, campaign.deleted, campaign.recipients_added, recipient.created, recipient.status_changed, recipient.email_sent, recipient.feedback_submitted", WebhookCreateSchema.shape, (input) => wrap(() => webhookCreate(input, apiKey)));
     server.tool("webhook_get", "Retrieve details of a single webhook subscription by ID", WebhookGetSchema.shape, (input) => wrap(() => webhookGet(input, apiKey)));

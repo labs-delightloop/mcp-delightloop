@@ -13,6 +13,7 @@ import {
 } from '@untitledui/icons';
 import { Avatar } from '../../lib/Avatar';
 import { Loader } from '../../lib/Loader';
+import { RecipientTimelinePanel } from './RecipientTimelinePanel';
 import { StatusPill } from './StatusPill';
 import type { RecipientRow } from './types';
 
@@ -113,6 +114,7 @@ export function RecipientsTable({
   const localSelected = useState<Set<string>>(new Set());
   const selected = selectedIds ?? localSelected[0];
   const setLocal = localSelected[1];
+  const [timelineRecipient, setTimelineRecipient] = useState<RecipientRow | null>(null);
 
   const toggleOne = (id: string) => {
     if (onToggle) return onToggle(id);
@@ -282,7 +284,11 @@ export function RecipientsTable({
                     </td>
                     <td className="px-4 py-3 align-middle">
                       <div className="flex items-center gap-1">
-                        <IconActionBtn icon={Eye} label="View" />
+                        <IconActionBtn
+                          icon={Eye}
+                          label="View"
+                          onClick={() => setTimelineRecipient(r)}
+                        />
                         <IconActionBtn icon={Bell01} label="Notify" />
                         <IconActionBtn icon={Link01} label="Copy link" />
                         <IconActionBtn icon={Plus} label="More" />
@@ -294,6 +300,13 @@ export function RecipientsTable({
           </tbody>
         </table>
       </div>
+      <RecipientTimelinePanel
+        open={!!timelineRecipient}
+        onClose={() => setTimelineRecipient(null)}
+        recipientId={timelineRecipient?.recipientId ?? ''}
+        recipientName={timelineRecipient?.name}
+        recipientEmail={timelineRecipient?.email}
+      />
     </div>
   );
 }
