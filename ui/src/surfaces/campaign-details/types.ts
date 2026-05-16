@@ -24,6 +24,12 @@ export interface RecipientRow {
   tags?: Array<{ name: string; color: string }>;
   createdAt?: string;
   updatedAt?: string;
+  // TODO: requires expanded recipient_list output
+  profileImage?: string | null;
+  linkedinUrl?: string | null;
+  company?: string | null;
+  role?: string | null;
+  giftThumbnail?: string | null;
 }
 
 export interface RecipientListResult {

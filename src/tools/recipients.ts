@@ -104,12 +104,43 @@ export const RecipientTagSchema = z.object({
 function simplifyRecipient(r: Record<string, unknown>) {
   const contact = (r.contactDetails as Record<string, unknown>) ?? {};
   const urls = (r.urls as Record<string, string>) ?? {};
+  const selectedGift = (r.selectedGift as Record<string, unknown>) ?? {};
+  const shipmentInfo = (r.shipmentInfo as Record<string, unknown>) ?? {};
+  const lastActivity = (r.lastActivity as Record<string, unknown>) ?? {};
+  const shipmentAddress = shipmentInfo.address as Record<string, unknown> | string | undefined;
+
+  const addressString = (() => {
+    if (typeof shipmentAddress === "string") return shipmentAddress;
+    if (shipmentAddress && typeof shipmentAddress === "object") {
+      const parts = [
+        shipmentAddress.line1,
+        shipmentAddress.line2,
+        shipmentAddress.city,
+        shipmentAddress.state,
+        shipmentAddress.postalCode ?? shipmentAddress.zip,
+        shipmentAddress.country,
+      ].filter((p) => typeof p === "string" && p.length > 0);
+      return parts.length > 0 ? parts.join(", ") : undefined;
+    }
+    return undefined;
+  })();
+
   return {
     recipientId: r.recipientId,
     status: r.status,
     contactId: r.sourceId,
     name: contact.fullName ?? `${contact.firstName ?? ""} ${contact.lastName ?? ""}`.trim(),
     email: contact.email,
+    profileImage: (r.profileImage ?? contact.profileImage) as string | undefined,
+    companyName: contact.companyName as string | undefined,
+    jobTitle: (contact.jobTitle ?? contact.role) as string | undefined,
+    linkedinUrl: contact.linkedinUrl as string | undefined,
+    phone: contact.phone as string | undefined,
+    giftId: selectedGift.id as string | undefined,
+    giftName: selectedGift.name as string | undefined,
+    giftImage: (selectedGift.image ?? selectedGift.imageUrl) as string | undefined,
+    address: addressString,
+    lastActivityAt: (lastActivity.at as string | undefined) ?? (r.updatedAt as string | undefined),
     landingPageUrl: urls.landingPage ?? null,
     claimPageUrl: urls.claimPage ?? null,
     tags: r.tags,

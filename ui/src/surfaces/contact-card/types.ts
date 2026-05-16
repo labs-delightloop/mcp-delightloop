@@ -29,6 +29,8 @@ export interface Contact {
   tags?: ContactTag[];
   customFields?: CustomField[] | Record<string, unknown>;
   source?: string;
+  profileImage?: string;
+  address?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -80,6 +82,8 @@ export function normalizeContact(raw: Record<string, unknown>): Contact {
       'custom_fields'
     ),
     source: get<string>('source'),
+    profileImage: get<string>('profileImage', 'profile_image', 'avatarUrl'),
+    address: get<string>('address'),
     createdAt: get<string>('createdAt', 'created_at'),
     updatedAt: get<string>('updatedAt', 'updated_at'),
   };

@@ -6,9 +6,29 @@ const app = new App({
 });
 
 let connected: Promise<void> | null = null;
+let darkModeInitialized = false;
+
+function initDarkMode(): void {
+  if (darkModeInitialized || typeof window === 'undefined') return;
+  darkModeInitialized = true;
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  const apply = (dark: boolean) => {
+    const root = document.documentElement;
+    if (dark) {
+      root.classList.add('dark-mode');
+      root.classList.remove('light-mode');
+    } else {
+      root.classList.add('light-mode');
+      root.classList.remove('dark-mode');
+    }
+  };
+  apply(mq.matches);
+  mq.addEventListener('change', (e) => apply(e.matches));
+}
 
 export function getApp(): App {
   if (!connected) {
+    initDarkMode();
     connected = app.connect();
   }
   return app;
@@ -16,6 +36,7 @@ export function getApp(): App {
 
 export async function ready(): Promise<App> {
   if (!connected) {
+    initDarkMode();
     connected = app.connect();
   }
   await connected;

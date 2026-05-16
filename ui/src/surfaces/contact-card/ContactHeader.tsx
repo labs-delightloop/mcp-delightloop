@@ -1,21 +1,16 @@
 import { Card } from '@/components/application/cards/card';
-import { Copy01, LinkExternal01, Mail01, PhoneCall01 } from '@untitledui/icons';
+import {
+  Copy01,
+  LinkExternal01,
+  Mail01,
+  PhoneCall01,
+} from '@untitledui/icons';
 import { useState } from 'react';
+import { Avatar } from '../../lib/Avatar';
 import type { Contact } from './types';
 
 interface ContactHeaderProps {
   contact: Contact;
-}
-
-function initials(contact: Contact): string {
-  const source =
-    contact.fullName ||
-    [contact.firstName, contact.lastName].filter(Boolean).join(' ') ||
-    contact.email ||
-    '?';
-  const parts = source.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
-  return (parts[0]![0]! + parts[parts.length - 1]![0]!).toUpperCase();
 }
 
 interface CopyButtonProps {
@@ -49,6 +44,15 @@ function CopyButton({ value, label }: CopyButtonProps) {
   );
 }
 
+function sourcePillClass(source?: string): string {
+  const s = (source ?? '').toLowerCase();
+  if (s === 'manual') return 'bg-utility-blue-50 text-utility-blue-700';
+  if (s === 'api') return 'bg-utility-gray-50 text-utility-gray-700';
+  if (s === 'import' || s === 'csv')
+    return 'bg-utility-success-50 text-utility-success-700';
+  return 'bg-utility-gray-50 text-utility-gray-700';
+}
+
 export function ContactHeader({ contact }: ContactHeaderProps) {
   const displayName =
     contact.fullName ||
@@ -63,15 +67,40 @@ export function ContactHeader({ contact }: ContactHeaderProps) {
   return (
     <Card.Root>
       <div className="px-6 py-5 flex flex-col gap-5 sm:flex-row sm:items-start">
-        <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-utility-brand-50 text-utility-brand-700 text-xl font-semibold">
-          {initials(contact)}
-        </div>
+        <Avatar
+          src={contact.profileImage}
+          name={displayName}
+          size="lg"
+          className="size-16 text-base shrink-0"
+        />
 
         <div className="min-w-0 flex-1 space-y-3">
           <div>
-            <h2 className="text-2xl font-semibold text-primary truncate">
-              {displayName}
-            </h2>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="text-2xl font-semibold text-primary truncate">
+                {displayName}
+              </h2>
+              {contact.linkedinUrl && (
+                <a
+                  href={contact.linkedinUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="LinkedIn profile"
+                  className="inline-flex items-center justify-center rounded p-1 text-utility-brand-600 hover:bg-utility-brand-50"
+                >
+                  <LinkExternal01 className="size-4" />
+                </a>
+              )}
+              {contact.source && (
+                <span
+                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${sourcePillClass(
+                    contact.source
+                  )}`}
+                >
+                  {contact.source}
+                </span>
+              )}
+            </div>
             {subtitle && (
               <p className="mt-1 text-sm text-secondary truncate">{subtitle}</p>
             )}

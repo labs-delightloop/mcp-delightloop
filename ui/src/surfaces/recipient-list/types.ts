@@ -1,15 +1,6 @@
-export interface RecipientRow {
-  recipientId: string;
-  status: string;
-  contactId?: string;
-  name?: string;
-  email?: string;
-  landingPageUrl?: string | null;
-  claimPageUrl?: string | null;
-  tags?: Array<{ name: string; color: string }>;
-  createdAt?: string;
-  updatedAt?: string;
-}
+import type { RecipientRow } from '../campaign-details/types';
+
+export type { RecipientRow };
 
 export interface RecipientListResult {
   recipients: RecipientRow[];

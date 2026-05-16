@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { parseToolResult, ready } from '../../lib/mcp-app';
+import { FullPageLoader } from '../../lib/Loader';
 import { CampaignDetailsContent } from './CampaignDetailsContent';
 import type { CampaignResult } from './types';
 
@@ -53,13 +54,11 @@ export function CampaignDetailsView() {
   }
 
   if (!campaign) {
-    return (
-      <div className="p-6 text-tertiary text-sm">Loading campaign…</div>
-    );
+    return <FullPageLoader />;
   }
 
   return (
-    <div className="p-6 max-w-[1280px] mx-auto">
+    <div className="p-6 max-w-[1440px] mx-auto">
       <CampaignDetailsContent campaign={campaign} />
     </div>
   );

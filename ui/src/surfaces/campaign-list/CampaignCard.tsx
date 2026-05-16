@@ -1,7 +1,8 @@
 import { Card } from '@/components/application/cards/card';
-import { Calendar, Send01, Target01 } from '@untitledui/icons';
 import { StatusPill } from '../campaign-details/StatusPill';
 import type { CampaignListItem } from './types';
+
+// TODO: needs campaign_metrics_get tool for recipient counts + progress bar + status breakdown.
 
 interface CampaignCardProps {
   campaign: CampaignListItem;
@@ -21,22 +22,42 @@ function relativeTime(iso?: string): string {
   const yr = Math.round(day / 365);
 
   if (sec < 60) return 'just now';
-  if (min < 60) return `${min} ${min === 1 ? 'minute' : 'minutes'} ago`;
-  if (hr < 24) return `${hr} ${hr === 1 ? 'hour' : 'hours'} ago`;
-  if (day < 30) return `${day} ${day === 1 ? 'day' : 'days'} ago`;
-  if (mo < 12) return `${mo} ${mo === 1 ? 'month' : 'months'} ago`;
-  return `${yr} ${yr === 1 ? 'year' : 'years'} ago`;
+  if (min < 60) return `${min}m ago`;
+  if (hr < 24) return `${hr}h ago`;
+  if (day < 30) return `${day}d ago`;
+  if (mo < 12) return `${mo}mo ago`;
+  return `${yr}y ago`;
+}
+
+function TagChip({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center rounded-md bg-secondary/60 px-2 py-0.5 text-xs font-medium text-secondary">
+      {children}
+    </span>
+  );
+}
+
+function MetricCell({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-0.5 min-w-0">
+      <span className="text-xs text-tertiary truncate">{label}</span>
+      <span className="text-sm font-medium text-primary truncate">{value}</span>
+    </div>
+  );
 }
 
 export function CampaignCard({ campaign, onOpen }: CampaignCardProps) {
+  const goal = campaign.goal?.trim();
+  const motion = campaign.motion?.trim();
+
   return (
     <Card.Root
-      className="p-5 transition-colors hover:bg-secondary/30 cursor-pointer"
+      className="p-5 transition-colors hover:bg-secondary/30 cursor-pointer flex flex-col gap-4"
       onClick={onOpen ? () => onOpen(campaign) : undefined}
     >
       <div className="flex items-start justify-between gap-3">
         <h3
-          className="text-md font-semibold text-primary truncate"
+          className="text-md font-semibold text-primary truncate flex-1 min-w-0"
           title={campaign.name || 'Untitled campaign'}
         >
           {campaign.name || 'Untitled campaign'}
@@ -44,25 +65,52 @@ export function CampaignCard({ campaign, onOpen }: CampaignCardProps) {
         {campaign.status && <StatusPill status={campaign.status} />}
       </div>
 
-      <div className="mt-4 space-y-2 text-sm">
-        <div className="flex items-center gap-2 text-secondary">
-          <Target01 className="h-4 w-4 text-tertiary" />
-          <span className="text-tertiary">Goal:</span>
-          <span className="text-primary truncate">{campaign.goal || '—'}</span>
+      {(goal || motion) && (
+        <div className="flex flex-wrap gap-1.5">
+          {goal && <TagChip>{goal}</TagChip>}
+          {motion && <TagChip>{motion}</TagChip>}
         </div>
-        <div className="flex items-center gap-2 text-secondary">
-          <Send01 className="h-4 w-4 text-tertiary" />
-          <span className="text-tertiary">Motion:</span>
-          <span className="text-primary truncate">{campaign.motion || '—'}</span>
+      )}
+
+      <div className="grid grid-cols-3 gap-3">
+        <MetricCell label="Recipients" value="—" />
+        <MetricCell label="Highlight" value="—" />
+        <MetricCell label="Created" value={relativeTime(campaign.createdAt)} />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <span className="text-xs font-medium text-tertiary">Status</span>
+        <div className="h-2 w-full rounded-full bg-secondary/60 overflow-hidden">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-utility-purple-400 to-utility-purple-600"
+            style={{ width: '0%' }}
+          />
+        </div>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-tertiary">
+          <span className="inline-flex items-center gap-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-utility-gray-400" />
+            Pending (—)
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-utility-purple-500" />
+            Transit (—)
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-utility-success-500" />
+            Delivered (—)
+          </span>
         </div>
       </div>
 
-      <div className="mt-4 pt-3 border-t border-secondary flex items-center justify-between text-xs text-tertiary">
-        <div className="flex items-center gap-1.5">
-          <Calendar className="h-3.5 w-3.5" />
-          <span>Created {relativeTime(campaign.createdAt)}</span>
-        </div>
-        <div>Updated {relativeTime(campaign.updatedAt)}</div>
+      <div className="flex items-center justify-between text-xs text-tertiary">
+        <span>Updated {relativeTime(campaign.updatedAt)}</span>
+        <span>—</span>
+      </div>
+      <div className="h-1 w-full rounded-full bg-secondary/60 overflow-hidden">
+        <div
+          className="h-full rounded-full bg-gradient-to-r from-utility-purple-400 to-utility-purple-600"
+          style={{ width: '0%' }}
+        />
       </div>
     </Card.Root>
   );

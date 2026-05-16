@@ -1,32 +1,99 @@
+import type { ComponentType } from 'react';
+import {
+  CheckCircle,
+  Clock,
+  Mail01,
+  PauseCircle,
+  Pencil01,
+  RefreshCw01,
+  Rocket02,
+  Truck01,
+  XCircle,
+} from '@untitledui/icons';
+import { BadgeWithDot, BadgeWithIcon } from '@/components/base/badges/badges';
+
+type StatusSize = 'sm' | 'md';
+
 interface StatusPillProps {
   status: string;
+  size?: StatusSize;
 }
 
-const STATUS_COLOR: Record<string, string> = {
-  draft: 'bg-utility-gray-50 text-utility-gray-700',
-  ready: 'bg-utility-blue-light-50 text-utility-blue-light-700',
-  invited: 'bg-utility-orange-50 text-utility-orange-700',
-  invite_sent: 'bg-utility-orange-50 text-utility-orange-700',
-  address_confirmed: 'bg-utility-blue-50 text-utility-blue-700',
-  processing: 'bg-utility-blue-50 text-utility-blue-700',
-  shipped: 'bg-utility-purple-50 text-utility-purple-700',
-  in_transit: 'bg-utility-purple-50 text-utility-purple-700',
-  delivered: 'bg-utility-success-50 text-utility-success-700',
-  acknowledged: 'bg-utility-success-100 text-utility-success-700',
-  cancelled: 'bg-utility-error-50 text-utility-error-700',
-  live: 'bg-utility-success-50 text-utility-success-700',
-  paused: 'bg-utility-warning-50 text-utility-warning-700',
-  preparing: 'bg-utility-blue-50 text-utility-blue-700',
-  completed: 'bg-utility-gray-50 text-utility-gray-700',
+type IconCmp = ComponentType<{ className?: string }>;
+
+type BadgeColor =
+  | 'gray'
+  | 'brand'
+  | 'error'
+  | 'warning'
+  | 'success'
+  | 'blue'
+  | 'orange'
+  | 'purple';
+
+const STATUS_MAP: Record<string, { color: BadgeColor; icon: IconCmp }> = {
+  ready: { color: 'orange', icon: Rocket02 },
+  invited: { color: 'blue', icon: Mail01 },
+  invite_sent: { color: 'blue', icon: Mail01 },
+  delivered: { color: 'success', icon: CheckCircle },
+  acknowledged: { color: 'success', icon: CheckCircle },
+  address_confirmed: { color: 'blue', icon: CheckCircle },
+  processing: { color: 'blue', icon: RefreshCw01 },
+  shipped: { color: 'purple', icon: Truck01 },
+  in_transit: { color: 'purple', icon: Truck01 },
+  cancelled: { color: 'error', icon: XCircle },
+  draft: { color: 'gray', icon: Pencil01 },
+  preparing: { color: 'blue', icon: Clock },
+  paused: { color: 'warning', icon: PauseCircle },
+  completed: { color: 'gray', icon: CheckCircle },
 };
 
-export function StatusPill({ status }: StatusPillProps) {
-  const cls = STATUS_COLOR[status] ?? 'bg-utility-gray-50 text-utility-gray-700';
+const STATUS_LABEL: Record<string, string> = {
+  ready: 'Ready to Launch',
+  invited: 'Invited',
+  invite_sent: 'Invite Sent',
+  address_confirmed: 'Address Confirmed',
+  processing: 'Processing',
+  shipped: 'Shipped',
+  in_transit: 'In Transit',
+  delivered: 'Delivered',
+  acknowledged: 'Acknowledged',
+  cancelled: 'Cancelled',
+  draft: 'Draft',
+  live: 'LIVE',
+  paused: 'Paused',
+  preparing: 'Preparing',
+  completed: 'Completed',
+};
+
+export function StatusPill({ status, size = 'sm' }: StatusPillProps) {
+  const label = STATUS_LABEL[status] ?? status.replace(/_/g, ' ');
+
+  if (status === 'live') {
+    return (
+      <BadgeWithDot type='pill-color' color='success' size={size}>
+        {label}
+      </BadgeWithDot>
+    );
+  }
+
+  const entry = STATUS_MAP[status];
+  if (entry) {
+    return (
+      <BadgeWithIcon
+        type='pill-color'
+        color={entry.color}
+        size={size}
+        iconLeading={entry.icon}
+      >
+        {label}
+      </BadgeWithIcon>
+    );
+  }
+
   return (
-    <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${cls}`}
-    >
-      {status.replace(/_/g, ' ')}
-    </span>
+    <BadgeWithDot type='pill-color' color='gray' size={size}>
+      {label}
+    </BadgeWithDot>
   );
 }

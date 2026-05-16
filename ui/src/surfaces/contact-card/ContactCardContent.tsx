@@ -1,5 +1,5 @@
 import { Card } from '@/components/application/cards/card';
-import { Edit01 } from '@untitledui/icons';
+import { Edit03 } from '@untitledui/icons';
 import { useState } from 'react';
 import { callTool } from '../../lib/mcp-app';
 import { ContactFields } from './ContactFields';
@@ -236,7 +236,7 @@ export function ContactCardContent({
           aria-label="Edit contact"
           className="absolute top-4 right-4 inline-flex items-center justify-center rounded-md p-1.5 text-tertiary hover:bg-secondary hover:text-primary transition-colors"
         >
-          <Edit01 className="size-4" />
+          <Edit03 className="size-4" />
         </button>
       </div>
       <ContactFields contact={current} />

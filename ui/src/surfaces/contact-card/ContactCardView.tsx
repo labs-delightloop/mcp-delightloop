@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { FullPageLoader } from '../../lib/Loader';
 import { parseToolResult, ready } from '../../lib/mcp-app';
 import { ContactCardContent } from './ContactCardContent';
 import { type Contact, normalizeContact } from './types';
@@ -52,7 +53,7 @@ export function ContactCardView() {
   }, []);
 
   if (loading) {
-    return <div className="p-6 text-sm text-tertiary">Loading contact…</div>;
+    return <FullPageLoader />;
   }
 
   if (!contact && error) {

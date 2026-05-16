@@ -88,12 +88,42 @@ export const RecipientTagSchema = z.object({
 function simplifyRecipient(r) {
     const contact = r.contactDetails ?? {};
     const urls = r.urls ?? {};
+    const selectedGift = r.selectedGift ?? {};
+    const shipmentInfo = r.shipmentInfo ?? {};
+    const lastActivity = r.lastActivity ?? {};
+    const shipmentAddress = shipmentInfo.address;
+    const addressString = (() => {
+        if (typeof shipmentAddress === "string")
+            return shipmentAddress;
+        if (shipmentAddress && typeof shipmentAddress === "object") {
+            const parts = [
+                shipmentAddress.line1,
+                shipmentAddress.line2,
+                shipmentAddress.city,
+                shipmentAddress.state,
+                shipmentAddress.postalCode ?? shipmentAddress.zip,
+                shipmentAddress.country,
+            ].filter((p) => typeof p === "string" && p.length > 0);
+            return parts.length > 0 ? parts.join(", ") : undefined;
+        }
+        return undefined;
+    })();
     return {
         recipientId: r.recipientId,
         status: r.status,
         contactId: r.sourceId,
         name: contact.fullName ?? `${contact.firstName ?? ""} ${contact.lastName ?? ""}`.trim(),
         email: contact.email,
+        profileImage: (r.profileImage ?? contact.profileImage),
+        companyName: contact.companyName,
+        jobTitle: (contact.jobTitle ?? contact.role),
+        linkedinUrl: contact.linkedinUrl,
+        phone: contact.phone,
+        giftId: selectedGift.id,
+        giftName: selectedGift.name,
+        giftImage: (selectedGift.image ?? selectedGift.imageUrl),
+        address: addressString,
+        lastActivityAt: lastActivity.at ?? r.updatedAt,
         landingPageUrl: urls.landingPage ?? null,
         claimPageUrl: urls.claimPage ?? null,
         tags: r.tags,

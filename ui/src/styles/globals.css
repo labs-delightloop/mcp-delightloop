@@ -9,3 +9,19 @@ body,
   background: var(--color-bg-primary, #fff);
   font-family: var(--font-body);
 }
+
+/* Dark mode — applied when host injects .dark-mode on documentElement,
+   or via @media prefers-color-scheme. Mirrors untitled-ui's dark tokens.
+   Actual dark colors come from untitled-ui's theme.css imported above;
+   the @custom-variant dark (&:where(.dark-mode, .dark-mode *)) makes
+   Tailwind's dark: utilities respond to the .dark-mode class. */
+@media (prefers-color-scheme: dark) {
+  :root:not(.light-mode) {
+    color-scheme: dark;
+  }
+}
+
+html.dark-mode,
+:where(html:not(.light-mode)) {
+  /* allow class-based override from host */
+}

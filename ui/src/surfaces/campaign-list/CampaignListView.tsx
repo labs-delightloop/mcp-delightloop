@@ -1,4 +1,6 @@
+import { Plus } from '@untitledui/icons';
 import { useEffect, useMemo, useState } from 'react';
+import { FullPageLoader } from '../../lib/Loader';
 import { callTool, parseToolResult, ready } from '../../lib/mcp-app';
 import { Slideout } from '../../lib/Slideout';
 import { CampaignDetailsContent } from '../campaign-details/CampaignDetailsContent';
@@ -16,6 +18,8 @@ export function CampaignListView() {
   const [total, setTotal] = useState<number | undefined>();
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<CampaignStatusFilter>('');
+  const [view, setView] = useState<'grid' | 'list'>('grid');
+  const [activeTab, setActiveTab] = useState<'all' | 'mine'>('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [initialApplied, setInitialApplied] = useState(false);
@@ -141,13 +145,20 @@ export function CampaignListView() {
 
   return (
     <div className="p-6 space-y-6 max-w-[1280px] mx-auto">
-      <div className="flex items-end justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold text-primary">Campaigns</h1>
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div className="space-y-1">
+          <h1 className="text-display-xs font-semibold text-primary">Campaign Overview</h1>
           <p className="text-sm text-tertiary">
-            {displayedTotal} {displayedTotal === 1 ? 'campaign' : 'campaigns'}
+            Track delivery rates, engagement, and ROI in real-time.
           </p>
         </div>
+        <button
+          type="button"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-utility-brand-600 px-3.5 py-2 text-sm font-semibold text-white shadow-xs hover:bg-utility-brand-700 transition-colors"
+        >
+          <Plus className="h-4 w-4" />
+          New Campaign
+        </button>
       </div>
 
       <Toolbar
@@ -155,7 +166,10 @@ export function CampaignListView() {
         onSearchChange={setSearch}
         status={status}
         onStatusChange={setStatus}
-        total={displayedTotal}
+        view={view}
+        onViewChange={setView}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
       />
 
       {error && (
@@ -164,9 +178,7 @@ export function CampaignListView() {
         </div>
       )}
 
-      {loading && campaigns.length === 0 && (
-        <div className="text-tertiary text-sm">Loading campaigns…</div>
-      )}
+      {loading && campaigns.length === 0 && <FullPageLoader />}
 
       {!loading && !error && campaigns.length === 0 && (
         <div className="rounded-lg border border-secondary bg-secondary/30 p-8 text-center text-tertiary text-sm">
@@ -175,12 +187,22 @@ export function CampaignListView() {
       )}
 
       {campaigns.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+        <div
+          className={
+            view === 'grid'
+              ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5'
+              : 'flex flex-col gap-3'
+          }
+        >
           {campaigns.map((c) => (
             <CampaignCard key={c.campaignId} campaign={c} onOpen={handleOpen} />
           ))}
         </div>
       )}
+
+      <p className="text-xs text-tertiary text-right">
+        {displayedTotal} {displayedTotal === 1 ? 'campaign' : 'campaigns'}
+      </p>
 
       <Slideout
         open={slideoutOpen}
@@ -188,9 +210,7 @@ export function CampaignListView() {
         title={selectedCampaign?.name || (slideoutLoading ? 'Loading…' : 'Campaign')}
         subtitle={selectedCampaign?.campaignId}
       >
-        {slideoutLoading && !selectedCampaign && (
-          <div className="text-tertiary text-sm">Loading campaign…</div>
-        )}
+        {slideoutLoading && !selectedCampaign && <FullPageLoader />}
         {slideoutError && (
           <div className="rounded-lg border border-utility-error-200 bg-utility-error-50 p-4 text-sm text-utility-error-700">
             {slideoutError}

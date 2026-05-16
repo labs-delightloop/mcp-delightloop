@@ -69,6 +69,13 @@ import {
   webhookDelete,
 } from "./tools/webhooks.js";
 
+import {
+  CampaignMetricsGetSchema,
+  RecipientTimelineGetSchema,
+  campaignMetricsGet,
+  recipientTimelineGet,
+} from "./tools/metrics.js";
+
 // ─── Helper ──────────────────────────────────────────────────────────────────
 
 function wrap<T>(fn: () => Promise<T>) {
@@ -276,6 +283,20 @@ export function createMcpServer(apiKey: string): McpServer {
     "Add one or more contacts to a live Delightloop campaign",
     CampaignAddContactsSchema.shape,
     (input) => wrap(() => campaignAddContacts(input, apiKey)),
+  );
+
+  server.tool(
+    "campaign_metrics_get",
+    "Get aggregate metrics for a campaign: totalRecipients, totalGiftsSent, totalDelivered, totalFeedback, draftCount, pendingConfirmation. Use this to populate StatusCards.",
+    CampaignMetricsGetSchema.shape,
+    (input) => wrap(() => campaignMetricsGet(input, apiKey)),
+  );
+
+  server.tool(
+    "recipient_timeline_get",
+    "Get the activity timeline for a recipient — emails sent, opens, clicks, gift events, feedback. Returns an array of timeline events sorted chronologically.",
+    RecipientTimelineGetSchema.shape,
+    (input) => wrap(() => recipientTimelineGet(input, apiKey)),
   );
 
   // ── Webhooks ───────────────────────────────────────────────────────────────

@@ -1,21 +1,22 @@
-import { Card } from '@/components/application/cards/card';
 import {
   Gift01,
   MessageChatSquare,
-  Pencil01,
   Truck01,
+  UserCheck01,
   Users01,
 } from '@untitledui/icons';
-import { useMemo } from 'react';
+import { useMemo, type ComponentType } from 'react';
 import type { RecipientRow } from './types';
 
 interface StatusCardItem {
   label: string;
   value: number;
-  icon: React.ComponentType<{ className?: string }>;
-  color: string;
+  icon: ComponentType<{ className?: string }>;
+  iconBg: string;
+  iconColor: string;
 }
 
+const PENDING_STATUSES = new Set(['ready', 'draft']);
 const SENT_STATUSES = new Set([
   'invited',
   'invite_sent',
@@ -27,7 +28,6 @@ const SENT_STATUSES = new Set([
   'acknowledged',
 ]);
 const DELIVERED_STATUSES = new Set(['delivered', 'acknowledged']);
-const PENDING_STATUSES = new Set(['ready', 'invited', 'invite_sent', 'draft']);
 
 interface StatusCardsProps {
   recipients: RecipientRow[];
@@ -40,79 +40,71 @@ export function StatusCards({ recipients, totalRecipients }: StatusCardsProps) {
     let pending = 0;
     let sent = 0;
     let delivered = 0;
-    let draft = 0;
     for (const r of recipients) {
-      if (r.status === 'draft') draft++;
       if (PENDING_STATUSES.has(r.status)) pending++;
       if (SENT_STATUSES.has(r.status)) sent++;
       if (DELIVERED_STATUSES.has(r.status)) delivered++;
     }
-    const main: StatusCardItem[] = [
+    return [
       {
         label: 'Recipients',
         value: total,
         icon: Users01,
-        color: 'text-utility-blue-light-700 bg-utility-blue-light-50',
+        iconBg: 'bg-utility-blue-light-50',
+        iconColor: 'text-utility-blue-light-700',
       },
       {
         label: 'Pending Confirmation',
         value: pending,
-        icon: Users01,
-        color: 'text-utility-orange-700 bg-utility-orange-50',
+        icon: UserCheck01,
+        iconBg: 'bg-utility-orange-50',
+        iconColor: 'text-utility-orange-700',
       },
       {
         label: 'Gifts Sent',
         value: sent,
         icon: Gift01,
-        color: 'text-utility-purple-700 bg-utility-purple-50',
+        iconBg: 'bg-utility-brand-50',
+        iconColor: 'text-utility-brand-700',
       },
       {
         label: 'Delivered',
         value: delivered,
         icon: Truck01,
-        color: 'text-utility-orange-700 bg-utility-orange-50',
+        iconBg: 'bg-utility-purple-50',
+        iconColor: 'text-utility-purple-700',
       },
-    ];
-    if (draft > 0) {
-      main.splice(1, 0, {
-        label: 'Draft',
-        value: draft,
-        icon: Pencil01,
-        color: 'text-utility-gray-700 bg-utility-gray-50',
-      });
-    } else {
-      main.push({
+      {
         label: 'Feedback',
         value: 0,
         icon: MessageChatSquare,
-        color: 'text-utility-purple-400 bg-utility-purple-100',
-      });
-    }
-    return main;
+        iconBg: 'bg-utility-pink-50',
+        iconColor: 'text-utility-pink-700',
+      },
+    ];
   }, [recipients, totalRecipients]);
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
       {items.map((i) => (
-        <Card.Root key={i.label}>
-          <Card.Content className="py-4">
-            <div className="flex flex-col justify-between min-h-[88px]">
-              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                <span
-                  className={`inline-flex items-center justify-center rounded-full p-2 ${i.color}`}
-                >
-                  <i.icon className="size-5" />
-                </span>
-                <p className="text-xs sm:text-sm leading-snug break-words text-tertiary">
-                  {i.label}
-                </p>
-              </div>
-              <p className="text-2xl font-semibold text-primary self-start">
-                {i.value}
-              </p>
-            </div>
-          </Card.Content>
-        </Card.Root>
+        <div
+          key={i.label}
+          className="rounded-lg border border-secondary bg-primary p-4 flex flex-col gap-3"
+        >
+          <div className="flex items-center gap-2.5">
+            <span
+              className={`inline-flex items-center justify-center rounded-full size-9 ${i.iconBg} ${i.iconColor}`}
+            >
+              <i.icon className="size-5" />
+            </span>
+            <p className="text-sm text-secondary font-medium leading-snug">
+              {i.label}
+            </p>
+          </div>
+          <p className="text-3xl font-semibold text-primary leading-none">
+            {i.value}
+          </p>
+        </div>
       ))}
     </div>
   );

@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Send01 } from '@untitledui/icons';
 import { callTool, parseToolResult, ready } from '../../lib/mcp-app';
+import { FullPageLoader } from '../../lib/Loader';
+import { RecipientsTable } from '../campaign-details/RecipientsTable';
+import type { RecipientRow } from '../campaign-details/types';
 import { Pagination } from './Pagination';
-import { RecipientsTableInteractive } from './RecipientsTableInteractive';
 import { StatusFilter } from './StatusFilter';
 import type { RecipientListResult, RecipientStatus } from './types';
 
@@ -91,7 +93,7 @@ export function RecipientListView() {
     };
   }, [campaignId, status, page, reloadKey]);
 
-  const recipients = data?.recipients ?? [];
+  const recipients: RecipientRow[] = data?.recipients ?? [];
   const total = data?.total ?? recipients.length;
   const totalPages = data?.totalPages ?? 1;
   const statusCounts = data?.statusCounts ?? {};
@@ -160,8 +162,6 @@ export function RecipientListView() {
     [launch, selectedReadyIds]
   );
 
-  const handleLaunchOne = useCallback((id: string) => launch([id]), [launch]);
-
   if (error) {
     return (
       <div className="p-6">
@@ -173,18 +173,19 @@ export function RecipientListView() {
   }
 
   if (!data) {
-    return <div className="p-6 text-tertiary text-sm">Loading recipients…</div>;
+    return <FullPageLoader />;
   }
 
   const showLaunch = selectedReadyIds.length > 0;
 
   return (
-    <div className="p-6 max-w-[1280px] mx-auto space-y-6">
+    <div className="p-6 w-full space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-primary">Recipients</h1>
-          <p className="text-sm text-tertiary">
-            {totalAcrossAll} total{status ? ` · filtered by ${status.replace(/_/g, ' ')}` : ''}
+          <h1 className="text-2xl font-semibold text-primary">Recipients</h1>
+          <p className="text-sm text-tertiary mt-1">
+            {totalAcrossAll} total
+            {status ? ` · filtered by ${status.replace(/_/g, ' ')}` : ''}
           </p>
         </div>
         {showLaunch && (
@@ -215,14 +216,12 @@ export function RecipientListView() {
         onChange={handleFilterChange}
       />
 
-      <RecipientsTableInteractive
+      <RecipientsTable
         recipients={recipients}
         loading={loading}
         selectedIds={selected}
         onToggle={handleToggle}
         onToggleAll={handleToggleAll}
-        onLaunchOne={handleLaunchOne}
-        launching={launching}
       />
 
       <Pagination page={page} totalPages={totalPages} onChange={handlePageChange} />
