@@ -4,9 +4,19 @@ RUN apk add --no-cache curl
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
+# `CI=true` makes the `is-ci || husky` prepare hook short-circuit before
+# invoking husky during install — husky needs `.git`, which is intentionally
+# not copied into the build context.
+ENV CI=true
 
-RUN npm install -g pnpm && pnpm install --frozen-lockfile --prod=false
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# Pinned to pnpm 10 — matches our pnpm-workspace.yaml which uses the v10
+# `onlyBuiltDependencies` field to whitelist build scripts for transitive
+# deps (@nestjs/core, @swc/core, core-js, unrs-resolver, @scarf/scarf,
+# esbuild). Without that field honored, pnpm 10 errors on
+# `[ERR_PNPM_IGNORED_BUILDS]`.
+RUN npm install -g pnpm@10 && pnpm install --frozen-lockfile --prod=false
 
 COPY . .
 

@@ -1,0 +1,14 @@
+# Single-package "workspace" so pnpm 10 recognizes this directory as a
+# valid pnpm workspace and reads `onlyBuiltDependencies` from this file
+# at install time. Without `packages:`, `pnpm <script>` (e.g. `pnpm build`)
+# errors with `packages field missing or empty`.
+packages:
+  - '.'
+
+onlyBuiltDependencies:
+  - '@nestjs/core'
+  - '@scarf/scarf'
+  - '@swc/core'
+  - core-js
+  - esbuild
+  - unrs-resolver
