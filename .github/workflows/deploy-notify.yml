@@ -1,0 +1,30 @@
+name: Deploy notification
+
+on:
+  deployment_status:
+
+jobs:
+  notify-slack:
+    runs-on: ubuntu-latest
+    if: >-
+      github.event.deployment_status.state == 'success' ||
+      github.event.deployment_status.state == 'failure' ||
+      github.event.deployment_status.state == 'error'
+    steps:
+      - name: Post deploy result to Slack
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          STATE: ${{ github.event.deployment_status.state }}
+          ENVIRONMENT: ${{ github.event.deployment.environment }}
+          DEPLOY_URL: ${{ github.event.deployment_status.environment_url }}
+          REPO: ${{ github.repository }}
+          REF: ${{ github.event.deployment.ref }}
+          SHA: ${{ github.sha }}
+        run: |
+          if [ "$STATE" = "success" ]; then ICON=":white_check_mark:"; else ICON=":x:"; fi
+          SHORT_SHA="${SHA:0:7}"
+          TEXT="$ICON *$REPO* — Cloudflare deploy *$STATE*\nEnvironment: \`${ENVIRONMENT:-unknown}\`  •  Ref: \`${REF:-?}\` (\`$SHORT_SHA\`)"
+          if [ -n "$DEPLOY_URL" ]; then TEXT="$TEXT\n$DEPLOY_URL"; fi
+          curl -sf -X POST -H 'Content-type: application/json' \
+            --data "$(jq -nc --arg t "$TEXT" '{text: $t}')" \
+            "$SLACK_WEBHOOK_URL"
