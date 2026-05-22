@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Post deploy result to Slack
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ github.event.deployment.environment == 'production' && secrets.SLACK_PROD_WEBHOOK_URL || secrets.SLACK_WEBHOOK_URL }}
           STATE: ${{ github.event.deployment_status.state }}
           ENVIRONMENT: ${{ github.event.deployment.environment }}
           DEPLOY_URL: ${{ github.event.deployment_status.environment_url }}
